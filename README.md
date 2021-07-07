@@ -24,7 +24,7 @@ go install github.com/neilalexander/yggmail/cmd/yggmail
 
 Create a mailbox, e.g. for user `alice`. A database will automatically be created in your working directory:
 ```
-yggmail --createuser alice
+yggmail -createuser=alice
 ```
 
 Start Yggmail, using the database in your working directory:
@@ -43,11 +43,11 @@ Then try sending a mail to another Yggmail user!
 
 The following command line switches are supported by the `yggmail` binary:
 
-* `-peer tls://...` or `-peer tcp://...` — connect to a specific Yggdrasil node;
-* `-database /path/to/yggmail.db` — use a specific database file;
-* `-smtp listenaddr:port` — listen for SMTP on a specific address/port
-* `-imap listenaddr:port` — listen for IMAP on a specific address/port;
-* `-createuser username` — create a new user in the database (doesn't matter if Yggmail is running or not, just make sure that Yggmail is pointing at the right database file or that you are in the right working directory).
+* `-peer=tls://...` or `-peer=tcp://...` — connect to a specific Yggdrasil node;
+* `-database=/path/to/yggmail.db` — use a specific database file;
+* `-smtp=listenaddr:port` — listen for SMTP on a specific address/port
+* `-imap=listenaddr:port` — listen for IMAP on a specific address/port;
+* `-createuser=username` — create a new user in the database (doesn't matter if Yggmail is running or not, just make sure that Yggmail is pointing at the right database file or that you are in the right working directory).
 
 ## Notes
 
@@ -64,3 +64,5 @@ There are probably all sorts of bugs, but the ones that we know of are:
 
 * IMAP behaviour might not be entirely spec-compliant in all cases, so your mileage with mail clients might vary;
 * SMTP queues up outbound mails in memory rather than in the database right now — if you restart Yggmail, any unsent mails will be lost.
+
+The code's a bit of a mess, so sorry about that.
