@@ -4,7 +4,7 @@ It's email, but not as you know it.
 
 ## Introduction
 
-Yggmail is a single-binary all-in-one mail transfer agent which sends and receives email natively over the Yggdrasil Network.
+Yggmail is a single-binary all-in-one mail transfer agent which sends and receives email natively over the [Yggdrasil Network](https://yggdrasil-network.github.io/).
 
 * Yggmail runs just about anywhere you like — your inbox is stored right on your own machine;
 * Implements IMAP and SMTP protocols for sending and receiving mail, so you can use your favourite client (hopefully);
@@ -43,7 +43,7 @@ Then try sending a mail to another Yggmail user!
 
 The following command line switches are supported by the `yggmail` binary:
 
-* `-peer=tls://...` or `-peer=tcp://...` — connect to a specific Yggdrasil node;
+* `-peer=tls://...` or `-peer=tcp://...` — connect to a specific Yggdrasil node, like one of the [Public Peers](https://publicpeers.neilalexander.dev/);
 * `-database=/path/to/yggmail.db` — use a specific database file;
 * `-smtp=listenaddr:port` — listen for SMTP on a specific address/port
 * `-imap=listenaddr:port` — listen for IMAP on a specific address/port;
