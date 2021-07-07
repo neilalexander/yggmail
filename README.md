@@ -14,15 +14,21 @@ Yggmail is a single-binary all-in-one mail transfer agent which sends and receiv
 
 Email addresses are based on your public key, like `neilalexander@e3bf4665ae1ff714e0112040af8ddfc8e4b664a28e4afa40746e13952550f9ef`. 
 
+## Why?
+
+There are all sorts of messaging services in the world but there is still a lot of value in asynchronous communication. Email is something that a lot of people understand reasonably well and there is still a huge volume of software in the world which supports email. Yggmail is designed to comply with the standards that people know and expect.
+
+Yggdrasil is well-suited for ad-hoc mail delivery and allows Yggmail to work even in closed networks, where Internet or other connectivity is restricted or simply not available. It guarantees end-to-end encryption and handles networks with changing topologies reasonably well. 
+
 ## Quickstart
 
-Build Yggmail by installing a recent version of Go:
+Use a recent version of Go to install Yggmail:
 
 ```
 go install github.com/neilalexander/yggmail/cmd/yggmail
 ```
 
-Create a mailbox, e.g. for user `alice`. A database will automatically be created in your working directory:
+Create a mailbox, e.g. for user `alice`. Your Yggmail database will automatically be created in your working directory if it doesn't already exist:
 ```
 yggmail -createuser=alice
 ```
@@ -56,7 +62,8 @@ There are a few important notes:
 * Yggmail needs to be running in order to receive inbound emails — it's therefore important to run Yggmail somewhere that will have good uptime;
 * Yggmail tries to guarantee that senders are who they say they are. Your `From` address must be your Yggmail address (or at the very least, from your Yggmail domain);
 * You can only email other Yggmail users, not regular email addresses on the public Internet;
-* You may need to configure your client to allow "insecure" or "plaintext" authentication to IMAP/SMTP — this is because we don't support SSL/TLS on the IMAP/SMTP listeners yet.
+* You may need to configure your client to allow "insecure" or "plaintext" authentication to IMAP/SMTP — this is because we don't support SSL/TLS on the IMAP/SMTP listeners yet;
+* Yggmail won't transport mails larger than 1MB right now.
 
 ## Bugs
 
@@ -65,4 +72,4 @@ There are probably all sorts of bugs, but the ones that we know of are:
 * IMAP behaviour might not be entirely spec-compliant in all cases, so your mileage with mail clients might vary;
 * SMTP queues up outbound mails in memory rather than in the database right now — if you restart Yggmail, any unsent mails will be lost.
 
-The code's a bit of a mess, so sorry about that.
+The code's also a bit of a mess, so sorry about that.
