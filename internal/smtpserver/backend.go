@@ -63,11 +63,12 @@ func (b *Backend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session, err
 		if err != nil {
 			return nil, fmt.Errorf("hex.DecodeString: %w", err)
 		}
-		if state.Hostname != base62.EncodeToString(pks) {
+		remote := base62.EncodeToString(pks)
+		if state.Hostname != remote {
 			return nil, fmt.Errorf("You are not who you claim to be")
 		}
 
-		b.Log.Println("Incoming SMTP session from", state.RemoteAddr.String())
+		b.Log.Println("Incoming SMTP session from", remote)
 		return &SessionRemote{
 			backend: b,
 			state:   state,

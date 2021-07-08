@@ -12,7 +12,7 @@ Yggmail is a single-binary all-in-one mail transfer agent which sends and receiv
 * All mail exchange traffic between any two Yggmail nodes is always end-to-end encrypted without exception;
 * Yggdrasil and Yggmail nodes on the same network are discovered automatically using multicast or you can configure a static Yggdrasil peer.
 
-Email addresses are based on your public key, like `neilalexander@e3bf4665ae1ff714e0112040af8ddfc8e4b664a28e4afa40746e13952550f9ef.yggmail`. 
+Email addresses are based on your public key, like `neilalexander@1mLp6AtYSE7rYOVDDTPKzasmFgG9BfKOk7aK4xOdZcT.yggmail`. 
 
 ## Why?
 

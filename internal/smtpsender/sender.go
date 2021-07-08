@@ -94,16 +94,19 @@ func (q *Queue) run() {
 			defer client.Close()
 
 			if err := client.Hello(base62.EncodeToString(q.queues.Config.PublicKey)); err != nil {
+				q.queues.Log.Println("Remote server", q.destination, "did not accept HELLO:", err)
 				return fmt.Errorf("client.Hello: %w", err)
 			}
 
 			q.backoff.Store(0)
 
 			if err := client.Mail(mail.From, nil); err != nil {
+				q.queues.Log.Println("Remote server", q.destination, "did not accept MAIL:", err)
 				return fmt.Errorf("client.Mail: %w", err)
 			}
 
 			if err := client.Rcpt(mail.Rcpt); err != nil {
+				q.queues.Log.Println("Remote server", q.destination, "did not accept RCPT:", err)
 				return fmt.Errorf("client.Rcpt: %w", err)
 			}
 
