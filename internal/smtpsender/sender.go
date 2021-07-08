@@ -1,7 +1,6 @@
 package smtpsender
 
 import (
-	"encoding/hex"
 	"fmt"
 	"log"
 	"math"
@@ -9,6 +8,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-smtp"
+	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/config"
 	"github.com/neilalexander/yggmail/internal/transport"
 	"go.uber.org/atomic"
@@ -93,7 +93,7 @@ func (q *Queue) run() {
 			}
 			defer client.Close()
 
-			if err := client.Hello(hex.EncodeToString(q.queues.Config.PublicKey)); err != nil {
+			if err := client.Hello(base62.EncodeToString(q.queues.Config.PublicKey)); err != nil {
 				return fmt.Errorf("client.Hello: %w", err)
 			}
 

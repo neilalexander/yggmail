@@ -10,6 +10,7 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.15.0
 	github.com/gologme/log v1.2.0
+	github.com/jxskiss/base62 v0.0.0-20191017122030-4f11678b909b // indirect
 	github.com/mattn/go-sqlite3 v1.14.7
 	github.com/neilalexander/utp v0.1.1-0.20210705212447-691f29ad692b
 	github.com/yggdrasil-network/yggdrasil-go v0.4.1-0.20210707004512-3704ebf4cbea

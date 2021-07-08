@@ -14,6 +14,7 @@ import (
 	"github.com/emersion/go-imap/server"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
+	"github.com/jxskiss/base62"
 	"golang.org/x/term"
 
 	"github.com/neilalexander/yggmail/internal/config"
@@ -64,7 +65,7 @@ func main() {
 		copy(sk, skBytes)
 	}
 	pk := sk.Public().(ed25519.PublicKey)
-	log.Println("Mail domain:", hex.EncodeToString(pk))
+	log.Println("Mail domain:", base62.EncodeToString(pk))
 
 	switch {
 	case createuser != nil && *createuser != "":
@@ -92,7 +93,7 @@ func main() {
 			panic(err)
 		}
 		fmt.Printf("Created user %q\n", *createuser)
-		fmt.Printf("Email address will be %s@%s%s\n", *createuser, hex.EncodeToString(pk), smtpserver.TLD)
+		fmt.Printf("Email address will be %s@%s%s\n", *createuser, base62.EncodeToString(pk), smtpserver.TLD)
 		os.Exit(0)
 	}
 
@@ -148,7 +149,7 @@ func main() {
 
 		localServer := smtp.NewServer(localBackend)
 		localServer.Addr = *smtpaddr
-		localServer.Domain = hex.EncodeToString(pk)
+		localServer.Domain = base62.EncodeToString(pk)
 		localServer.MaxMessageBytes = 1024 * 1024
 		localServer.MaxRecipients = 50
 		localServer.AllowInsecureAuth = true
@@ -177,7 +178,7 @@ func main() {
 		}
 
 		overlayServer := smtp.NewServer(overlayBackend)
-		overlayServer.Domain = hex.EncodeToString(pk)
+		overlayServer.Domain = base62.EncodeToString(pk)
 		overlayServer.MaxMessageBytes = 1024 * 1024
 		overlayServer.MaxRecipients = 50
 		overlayServer.AuthDisabled = true

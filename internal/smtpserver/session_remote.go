@@ -3,13 +3,13 @@ package smtpserver
 import (
 	"bytes"
 	"crypto/ed25519"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"time"
 
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-smtp"
+	"github.com/jxskiss/base62"
 )
 
 type SessionRemote struct {
@@ -40,7 +40,7 @@ func (s *SessionRemote) Rcpt(to string) error {
 		return fmt.Errorf("mail.ParseAddress: %w", err)
 	}
 
-	if local := hex.EncodeToString(s.backend.Config.PublicKey); host != local {
+	if local := base62.EncodeToString(s.backend.Config.PublicKey); host != local {
 		return fmt.Errorf("not allowed to send mail to %q", host)
 	}
 
@@ -56,7 +56,7 @@ func (s *SessionRemote) Data(r io.Reader) error {
 
 	m.Header.Add(
 		"Received", fmt.Sprintf("from Yggmail %s; %s",
-			hex.EncodeToString(s.public),
+			base62.EncodeToString(s.public),
 			time.Now().String(),
 		),
 	)

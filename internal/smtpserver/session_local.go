@@ -2,13 +2,13 @@ package smtpserver
 
 import (
 	"bytes"
-	"encoding/hex"
 	"fmt"
 	"io"
 	"time"
 
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-smtp"
+	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/smtpsender"
 )
 
@@ -25,7 +25,7 @@ func (s *SessionLocal) Mail(from string, opts smtp.MailOptions) error {
 		return fmt.Errorf("parseAddress: %w", err)
 	}
 
-	if host != hex.EncodeToString(s.backend.Config.PublicKey) {
+	if host != base62.EncodeToString(s.backend.Config.PublicKey) {
 		return fmt.Errorf("not allowed to send outgoing mail as %s", from)
 	}
 
@@ -47,7 +47,7 @@ func (s *SessionLocal) Data(r io.Reader) error {
 	m.Header.Add(
 		"Received", fmt.Sprintf("from %s by Yggmail %s; %s",
 			s.state.RemoteAddr.String(),
-			hex.EncodeToString(s.backend.Config.PublicKey),
+			base62.EncodeToString(s.backend.Config.PublicKey),
 			time.Now().String(),
 		),
 	)
@@ -65,7 +65,7 @@ func (s *SessionLocal) Data(r io.Reader) error {
 		}
 		servers[host] = struct{}{}
 
-		if host == hex.EncodeToString(s.backend.Config.PublicKey) {
+		if host == base62.EncodeToString(s.backend.Config.PublicKey) {
 			var b bytes.Buffer
 			if err := m.WriteTo(&b); err != nil {
 				return fmt.Errorf("m.WriteTo: %w", err)
