@@ -27,13 +27,12 @@ func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
 		return fmt.Errorf("mail.ParseAddress: %w", err)
 	}
 
-	pks, err := hex.DecodeString(host)
+	pks, err := hex.DecodeString(s.state.RemoteAddr.String())
 	if err != nil {
 		return fmt.Errorf("hex.DecodeString: %w", err)
 	}
-	remote := base62.EncodeToString(pks)
 
-	if local := s.state.RemoteAddr.String(); local != remote {
+	if remote := base62.EncodeToString(pks); host != remote {
 		return fmt.Errorf("not allowed to send incoming mail as %s", from)
 	}
 
