@@ -92,7 +92,7 @@ func main() {
 			panic(err)
 		}
 		fmt.Printf("Created user %q\n", *createuser)
-		fmt.Printf("Email address will be %s@%s\n", *createuser, hex.EncodeToString(pk))
+		fmt.Printf("Email address will be %s@%s%s\n", *createuser, hex.EncodeToString(pk), smtpserver.TLD)
 		os.Exit(0)
 	}
 

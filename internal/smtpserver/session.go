@@ -5,10 +5,15 @@ import (
 	"strings"
 )
 
+const TLD = ".yggmail"
+
 func parseAddress(email string) (string, string, error) {
+	if !strings.HasSuffix(email, TLD) {
+		return "", "", fmt.Errorf("invalid TLD")
+	}
 	at := strings.LastIndex(email, "@")
 	if at == 0 {
 		return "", "", fmt.Errorf("invalid email address")
 	}
-	return email[:at], email[at+1:], nil
+	return email[:at], strings.TrimSuffix(email[at+1:], TLD), nil
 }
