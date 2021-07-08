@@ -9,7 +9,6 @@ import (
 
 type SQLite3Storage struct {
 	*TableConfig
-	*TableUsers
 	*TableMailboxes
 	*TableMails
 }
@@ -23,10 +22,6 @@ func NewSQLite3StorageStorage(filename string) (*SQLite3Storage, error) {
 	s.TableConfig, err = NewTableConfig(db)
 	if err != nil {
 		return nil, fmt.Errorf("NewTableConfig: %w", err)
-	}
-	s.TableUsers, err = NewTableUsers(db)
-	if err != nil {
-		return nil, fmt.Errorf("NewTableUsers: %w", err)
 	}
 	s.TableMailboxes, err = NewTableMailboxes(db)
 	if err != nil {

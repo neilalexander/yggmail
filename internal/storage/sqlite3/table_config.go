@@ -3,6 +3,8 @@ package sqlite3
 import (
 	"database/sql"
 	"fmt"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type TableConfig struct {
@@ -58,4 +60,27 @@ func (t *TableConfig) ConfigGet(key string) (string, error) {
 func (t *TableConfig) ConfigSet(key, value string) error {
 	_, err := t.set.Exec(key, value)
 	return err
+}
+
+func (t *TableConfig) ConfigSetPassword(password string) error {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return fmt.Errorf("bcrypt.GenerateFromPassword: %w", err)
+	}
+	return t.ConfigSet("password", string(hash))
+}
+
+func (t *TableConfig) ConfigTryPassword(password string) (bool, error) {
+	dbPasswordHash, err := t.ConfigGet("password")
+	if err != nil {
+		return false, err
+	}
+	if dbPasswordHash == "" {
+		return true, nil // TODO: Do we want to allow login if no password is set?
+	}
+	err = bcrypt.CompareHashAndPassword([]byte(dbPasswordHash), []byte(password))
+	if err == nil {
+		return true, nil
+	}
+	return false, err
 }

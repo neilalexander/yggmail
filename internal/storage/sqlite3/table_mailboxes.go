@@ -18,39 +18,38 @@ type TableMailboxes struct {
 
 const mailboxesSchema = `
 	CREATE TABLE IF NOT EXISTS mailboxes (
-		username 	TEXT NOT NULL REFERENCES users(username) ON DELETE CASCADE ON UPDATE CASCADE,
 		mailbox 	TEXT NOT NULL DEFAULT('INBOX'),
 		subscribed  BOOLEAN NOT NULL DEFAULT 1,
-		PRIMARY 	KEY(username, mailbox)
+		PRIMARY 	KEY(mailbox)
 	);
 `
 
 const mailboxesList = `
-	SELECT mailbox FROM mailboxes WHERE username = $1
+	SELECT mailbox FROM mailboxes
 `
 
 const mailboxesListSubscribed = `
-	SELECT mailbox FROM mailboxes WHERE username = $1 AND subscribed = 1
+	SELECT mailbox FROM mailboxes WHERE subscribed = 1
 `
 
 const mailboxesSelect = `
-	SELECT mailbox FROM mailboxes WHERE username = $1 AND mailbox = $2
+	SELECT mailbox FROM mailboxes WHERE mailbox = $1
 `
 
 const mailboxesCreate = `
-	INSERT INTO mailboxes (username, mailbox) VALUES($1, $2)
+	INSERT INTO mailboxes (mailbox) VALUES($1)
 `
 
 const mailboxesRename = `
-	UPDATE mailboxes SET mailbox = $1 WHERE username = $2 AND mailbox = $3
+	UPDATE mailboxes SET mailbox = $1 WHERE mailbox = $2
 `
 
 const mailboxesDelete = `
-	DELETE FROM mailboxes WHERE username = $1 AND mailbox = $2
+	DELETE FROM mailboxes WHERE mailbox = $1
 `
 
 const mailboxesSubscribe = `
-	UPDATE mailboxes SET subscribed = $1 WHERE username = $2 AND mailbox = $3
+	UPDATE mailboxes SET subscribed = $1 WHERE mailbox = $2
 `
 
 func NewTableMailboxes(db *sql.DB) (*TableMailboxes, error) {
@@ -92,12 +91,12 @@ func NewTableMailboxes(db *sql.DB) (*TableMailboxes, error) {
 	return t, nil
 }
 
-func (t *TableMailboxes) MailboxList(user string, onlySubscribed bool) ([]string, error) {
+func (t *TableMailboxes) MailboxList(onlySubscribed bool) ([]string, error) {
 	stmt := t.listMailboxes
 	if onlySubscribed {
 		stmt = t.listMailboxesSubscribed
 	}
-	rows, err := stmt.Query(user)
+	rows, err := stmt.Query()
 	if err != nil {
 		return nil, fmt.Errorf("t.listMailboxes.Query: %w", err)
 	}
@@ -113,8 +112,8 @@ func (t *TableMailboxes) MailboxList(user string, onlySubscribed bool) ([]string
 	return mailboxes, nil
 }
 
-func (t *TableMailboxes) MailboxSelect(user, mailbox string) (bool, error) {
-	row := t.selectMailboxes.QueryRow(user, mailbox)
+func (t *TableMailboxes) MailboxSelect(mailbox string) (bool, error) {
+	row := t.selectMailboxes.QueryRow(mailbox)
 	if err := row.Err(); err != nil && err != sql.ErrNoRows {
 		return false, fmt.Errorf("row.Err: %w", err)
 	} else if err == sql.ErrNoRows {
@@ -127,26 +126,26 @@ func (t *TableMailboxes) MailboxSelect(user, mailbox string) (bool, error) {
 	return mailbox == got, nil
 }
 
-func (t *TableMailboxes) MailboxCreate(user, name string) error {
-	_, err := t.createMailbox.Exec(user, name)
+func (t *TableMailboxes) MailboxCreate(name string) error {
+	_, err := t.createMailbox.Exec(name)
 	return err
 }
 
-func (t *TableMailboxes) MailboxRename(user, old, new string) error {
-	_, err := t.renameMailbox.Exec(new, user, old)
+func (t *TableMailboxes) MailboxRename(old, new string) error {
+	_, err := t.renameMailbox.Exec(old, new)
 	return err
 }
 
-func (t *TableMailboxes) MailboxDelete(user, name string) error {
-	_, err := t.deleteMailbox.Exec(user, name)
+func (t *TableMailboxes) MailboxDelete(name string) error {
+	_, err := t.deleteMailbox.Exec(name)
 	return err
 }
 
-func (t *TableMailboxes) MailboxSubscribe(user, name string, subscribed bool) error {
+func (t *TableMailboxes) MailboxSubscribe(name string, subscribed bool) error {
 	sn := 1
 	if !subscribed {
 		sn = 0
 	}
-	_, err := t.subscribeMailbox.Exec(sn, user, name)
+	_, err := t.subscribeMailbox.Exec(sn, name)
 	return err
 }

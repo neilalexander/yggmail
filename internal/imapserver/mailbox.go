@@ -23,7 +23,7 @@ func (mbox *Mailbox) getIDsFromSeqSet(uid bool, seqSet *imap.SeqSet) ([]int32, e
 	var ids []int32
 	for _, set := range seqSet.Set {
 		if set.Stop == 0 {
-			next, err := mbox.backend.Storage.MailNextID(mbox.user.username, mbox.name)
+			next, err := mbox.backend.Storage.MailNextID(mbox.name)
 			if err != nil {
 				return nil, fmt.Errorf("mbox.backend.Storage.MailNextID: %w", err)
 			}
@@ -31,7 +31,7 @@ func (mbox *Mailbox) getIDsFromSeqSet(uid bool, seqSet *imap.SeqSet) ([]int32, e
 		}
 		for i := set.Start; i <= set.Stop; i++ {
 			if !uid {
-				pid, err := mbox.backend.Storage.MailIDForSeq(mbox.user.username, mbox.name, int(i))
+				pid, err := mbox.backend.Storage.MailIDForSeq(mbox.name, int(i))
 				if err != nil {
 					return nil, fmt.Errorf("mbox.backend.Storage.MailIDForSeq: %w", err)
 				}
@@ -67,14 +67,14 @@ func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error
 	for _, name := range items {
 		switch name {
 		case imap.StatusMessages:
-			count, err := mbox.backend.Storage.MailCount(mbox.user.username, mbox.name)
+			count, err := mbox.backend.Storage.MailCount(mbox.name)
 			if err != nil {
 				return nil, fmt.Errorf("mbox.backend.Storage.MailCount: %w", err)
 			}
 			status.Messages = uint32(count)
 
 		case imap.StatusUidNext:
-			id, err := mbox.backend.Storage.MailNextID(mbox.user.username, mbox.name)
+			id, err := mbox.backend.Storage.MailNextID(mbox.name)
 			if err != nil {
 				return nil, fmt.Errorf("mbox.backend.Storage.MailNextID: %w", err)
 			}
@@ -87,7 +87,7 @@ func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error
 			status.Recent = 0 // TODO
 
 		case imap.StatusUnseen:
-			unseen, err := mbox.backend.Storage.MailUnseen(mbox.user.username, mbox.name)
+			unseen, err := mbox.backend.Storage.MailUnseen(mbox.name)
 			if err != nil {
 				return nil, fmt.Errorf("mbox.backend.Storage.MailUnseen: %w", err)
 			}
@@ -99,7 +99,7 @@ func (mbox *Mailbox) Status(items []imap.StatusItem) (*imap.MailboxStatus, error
 }
 
 func (mbox *Mailbox) SetSubscribed(subscribed bool) error {
-	return mbox.backend.Storage.MailboxSubscribe(mbox.user.username, mbox.name, subscribed)
+	return mbox.backend.Storage.MailboxSubscribe(mbox.name, subscribed)
 }
 
 func (mbox *Mailbox) Check() error {
@@ -115,7 +115,7 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 	}
 
 	for _, id := range ids {
-		mseq, mid, body, seen, answered, flagged, deleted, datetime, err := mbox.backend.Storage.MailSelect(mbox.user.username, mbox.name, int(id))
+		mseq, mid, body, seen, answered, flagged, deleted, datetime, err := mbox.backend.Storage.MailSelect(mbox.name, int(id))
 		if err != nil {
 			continue
 		}
@@ -201,7 +201,7 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 }
 
 func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]uint32, error) {
-	return mbox.backend.Storage.MailSearch(mbox.user.username, mbox.name)
+	return mbox.backend.Storage.MailSearch(mbox.name)
 }
 
 func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
@@ -209,7 +209,7 @@ func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Lit
 	if err != nil {
 		return fmt.Errorf("b.ReadFrom: %w", err)
 	}
-	id, err := mbox.backend.Storage.MailCreate(mbox.user.username, mbox.name, b)
+	id, err := mbox.backend.Storage.MailCreate(mbox.name, b)
 	if err != nil {
 		return fmt.Errorf("mbox.backend.Storage.MailCreate: %w", err)
 	}
@@ -226,7 +226,7 @@ func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Lit
 			deleted = true
 		}
 		if err := mbox.backend.Storage.MailUpdateFlags(
-			mbox.user.username, mbox.name, id, seen, answered, flagged, deleted,
+			mbox.name, id, seen, answered, flagged, deleted,
 		); err != nil {
 			return err
 		}
@@ -245,7 +245,7 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.
 		var mid int
 		if op != imap.SetFlags {
 			var err error
-			_, mid, _, seen, answered, flagged, deleted, _, err = mbox.backend.Storage.MailSelect(mbox.user.username, mbox.name, int(id))
+			_, mid, _, seen, answered, flagged, deleted, _, err = mbox.backend.Storage.MailSelect(mbox.name, int(id))
 			if err != nil {
 				return fmt.Errorf("mbox.backend.Storage.MailSelect: %w", err)
 			}
@@ -264,7 +264,7 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.
 		}
 
 		if err := mbox.backend.Storage.MailUpdateFlags(
-			mbox.user.username, mbox.name, int(mid), seen, answered, flagged, deleted,
+			mbox.name, int(mid), seen, answered, flagged, deleted,
 		); err != nil {
 			return err
 		}
@@ -279,15 +279,15 @@ func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string
 	}
 
 	for _, id := range ids {
-		_, _, body, seen, answered, flagged, deleted, _, err := mbox.backend.Storage.MailSelect(mbox.user.username, mbox.name, int(id))
+		_, _, body, seen, answered, flagged, deleted, _, err := mbox.backend.Storage.MailSelect(mbox.name, int(id))
 		if err != nil {
 			return fmt.Errorf("mbox.backend.Storage.MailSelect: %w", err)
 		}
-		pid, err := mbox.backend.Storage.MailCreate(mbox.user.username, destName, body)
+		pid, err := mbox.backend.Storage.MailCreate(destName, body)
 		if err != nil {
 			return fmt.Errorf("mbox.backend.Storage.MailCreate: %w", err)
 		}
-		if err = mbox.backend.Storage.MailUpdateFlags(mbox.user.username, mbox.name, pid, seen, answered, flagged, deleted); err != nil {
+		if err = mbox.backend.Storage.MailUpdateFlags(mbox.name, pid, seen, answered, flagged, deleted); err != nil {
 			return fmt.Errorf("mbox.backend.Storage.MailUpdateFlags: %w", err)
 		}
 	}
@@ -295,5 +295,5 @@ func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string
 }
 
 func (mbox *Mailbox) Expunge() error {
-	return mbox.backend.Storage.MailExpunge(mbox.user.username, mbox.name)
+	return mbox.backend.Storage.MailExpunge(mbox.name)
 }

@@ -20,14 +20,14 @@ type Backend struct {
 
 func (b *Backend) Login(_ *imap.ConnInfo, username, password string) (backend.User, error) {
 	// If our username is email-like, then take just the localpart
-	if localpart, host, err := utils.ParseAddress(username); err == nil {
-		if host != base62.EncodeToString(b.Config.PublicKey) {
+	if pk, err := utils.ParseAddress(username); err == nil {
+		if !pk.Equal(b.Config.PublicKey) {
+			b.Log.Println("Failed to authenticate IMAP user due to wrong domain", pk, b.Config.PublicKey)
 			return nil, fmt.Errorf("failed to authenticate: wrong domain in username")
 		}
-		username = localpart
 	}
-
-	if authed, err := b.Storage.TryAuthenticate(username, password); err != nil {
+	username = base62.EncodeToString(b.Config.PublicKey)
+	if authed, err := b.Storage.ConfigTryPassword(password); err != nil {
 		b.Log.Printf("Failed to authenticate IMAP user %q due to error: %s", username, err)
 		return nil, fmt.Errorf("failed to authenticate: %w", err)
 	} else if !authed {

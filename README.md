@@ -12,7 +12,7 @@ Yggmail is a single-binary all-in-one mail transfer agent which sends and receiv
 * All mail exchange traffic between any two Yggmail nodes is always end-to-end encrypted without exception;
 * Yggdrasil and Yggmail nodes on the same network are discovered automatically using multicast or you can configure a static Yggdrasil peer.
 
-Email addresses are based on your public key, like `neilalexander@1mLp6AtYSE7rYOVDDTPKzasmFgG9BfKOk7aK4xOdZcT.yggmail`. 
+Email addresses are based on your public key, like `1mLp6AtYSE7rYOVDDTPKzasmFgG9BfKOk7aK4xOdZcT@yggmail`. 
 
 ## Why?
 
@@ -28,9 +28,9 @@ Use a recent version of Go to install Yggmail:
 go install github.com/neilalexander/yggmail/cmd/yggmail
 ```
 
-Create a mailbox, e.g. for user `alice`. Your Yggmail database will automatically be created in your working directory if it doesn't already exist:
+Create a mailbox and set your password. Your Yggmail database will automatically be created in your working directory if it doesn't already exist:
 ```
-yggmail -createuser=alice
+yggmail -password
 ```
 
 Start Yggmail, using the database in your working directory:
@@ -53,7 +53,7 @@ The following command line switches are supported by the `yggmail` binary:
 * `-database=/path/to/yggmail.db` — use a specific database file;
 * `-smtp=listenaddr:port` — listen for SMTP on a specific address/port
 * `-imap=listenaddr:port` — listen for IMAP on a specific address/port;
-* `-createuser=username` — create a new user in the database (doesn't matter if Yggmail is running or not, just make sure that Yggmail is pointing at the right database file or that you are in the right working directory).
+* `-password` — set your IMAP/SMTP password (doesn't matter if Yggmail is running or not, just make sure that Yggmail is pointing at the right database file or that you are in the right working directory).
 
 ## Notes
 

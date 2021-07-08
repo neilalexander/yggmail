@@ -23,7 +23,7 @@ type SessionRemote struct {
 }
 
 func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
-	_, host, err := utils.ParseAddress(from)
+	pk, err := utils.ParseAddress(from)
 	if err != nil {
 		return fmt.Errorf("mail.ParseAddress: %w", err)
 	}
@@ -33,7 +33,7 @@ func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
 		return fmt.Errorf("hex.DecodeString: %w", err)
 	}
 
-	if remote := base62.EncodeToString(pks); host != remote {
+	if remote := base62.EncodeToString(pks); base62.EncodeToString(pk) != remote {
 		return fmt.Errorf("not allowed to send incoming mail as %s", from)
 	}
 
@@ -42,16 +42,15 @@ func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
 }
 
 func (s *SessionRemote) Rcpt(to string) error {
-	user, host, err := utils.ParseAddress(to)
+	pk, err := utils.ParseAddress(to)
 	if err != nil {
 		return fmt.Errorf("mail.ParseAddress: %w", err)
 	}
 
-	if local := base62.EncodeToString(s.backend.Config.PublicKey); host != local {
-		return fmt.Errorf("not allowed to send mail to %q", host)
+	if !pk.Equal(s.backend.Config.PublicKey) {
+		return fmt.Errorf("unexpected recipient for wrong domain")
 	}
 
-	s.localparts = append(s.localparts, user)
 	return nil
 }
 
@@ -73,12 +72,11 @@ func (s *SessionRemote) Data(r io.Reader) error {
 		return fmt.Errorf("m.WriteTo: %w", err)
 	}
 
-	for _, localpart := range s.localparts {
-		if _, err := s.backend.Storage.MailCreate(localpart, "INBOX", b.Bytes()); err != nil {
-			return fmt.Errorf("s.backend.Storage.StoreMessageFor: %w", err)
-		}
-		s.backend.Log.Printf("Stored new mail for local user %q from %s", localpart, s.from)
+	if _, err := s.backend.Storage.MailCreate("INBOX", b.Bytes()); err != nil {
+		return fmt.Errorf("s.backend.Storage.StoreMessageFor: %w", err)
 	}
+	s.backend.Log.Printf("Stored new mail from %s", s.from)
+
 	return nil
 }
 

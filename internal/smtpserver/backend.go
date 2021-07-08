@@ -32,15 +32,14 @@ func (b *Backend) Login(state *smtp.ConnectionState, username, password string) 
 	switch b.Mode {
 	case BackendModeInternal:
 		// If our username is email-like, then take just the localpart
-		if localpart, host, err := utils.ParseAddress(username); err == nil {
-			if host != base62.EncodeToString(b.Config.PublicKey) {
+		if pk, err := utils.ParseAddress(username); err == nil {
+			if !pk.Equal(b.Config.PublicKey) {
 				return nil, fmt.Errorf("failed to authenticate: wrong domain in username")
 			}
-			username = localpart
 		}
-
+		username = base62.EncodeToString(b.Config.PublicKey)
 		// The connection came from our local listener
-		if authed, err := b.Storage.TryAuthenticate(username, password); err != nil {
+		if authed, err := b.Storage.ConfigTryPassword(password); err != nil {
 			b.Log.Printf("Failed to authenticate SMTP user %q due to error: %s", username, err)
 			return nil, fmt.Errorf("failed to authenticate: %w", err)
 		} else if !authed {

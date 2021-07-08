@@ -23,7 +23,6 @@ type TableMails struct {
 
 const mailsSchema = `
 	CREATE TABLE IF NOT EXISTS mails (
-		username 	TEXT NOT NULL,
 		mailbox 	TEXT NOT NULL,
 		id			INTEGER NOT NULL DEFAULT 1,
 		mail 		BLOB NOT NULL,
@@ -32,72 +31,72 @@ const mailsSchema = `
 		answered	BOOLEAN NOT NULL DEFAULT 0, -- the mail has been replied to
 		flagged		BOOLEAN NOT NULL DEFAULT 0, -- the mail has been flagged for later attention
 		deleted		BOOLEAN NOT NULL DEFAULT 0, -- the email is marked for deletion at next EXPUNGE
-		PRIMARY KEY(username, mailbox, id),
-		FOREIGN KEY (username, mailbox) REFERENCES mailboxes(username, mailbox) ON DELETE CASCADE ON UPDATE CASCADE
+		PRIMARY KEY (mailbox, id),
+		FOREIGN KEY (mailbox) REFERENCES mailboxes(mailbox) ON DELETE CASCADE ON UPDATE CASCADE
 	);
 
 	DROP VIEW IF EXISTS inboxes;
 	CREATE VIEW IF NOT EXISTS inboxes AS SELECT * FROM (
-		SELECT ROW_NUMBER() OVER (PARTITION BY username, mailbox) AS seq, * FROM mails
+		SELECT ROW_NUMBER() OVER (PARTITION BY mailbox) AS seq, * FROM mails
 	)
-	ORDER BY username, mailbox, id;
+	ORDER BY mailbox, id;
 `
 
 const selectMailsStmt = `
 	SELECT * FROM inboxes
-	ORDER BY username, mailbox, id
+	ORDER BY mailbox, id
 `
 
 const selectMailStmt = `
 	SELECT seq, id, mail, datetime, seen, answered, flagged, deleted FROM inboxes
-	WHERE username = $1 AND mailbox = $2 AND id = $3
-	ORDER BY username, mailbox, id
+	WHERE mailbox = $1 AND id = $2
+	ORDER BY mailbox, id
 `
 
 const selectMailCountStmt = `
-	SELECT COUNT(*) FROM mails WHERE username = $1 AND mailbox = $2
+	SELECT COUNT(*) FROM mails WHERE mailbox = $1
 `
 
 const selectMailUnseenStmt = `
-	SELECT COUNT(*) FROM mails WHERE username = $1 AND mailbox = $2 AND seen = 0
+	SELECT COUNT(*) FROM mails WHERE mailbox = $1 AND seen = 0
 `
 
 const searchMailStmt = `
 	SELECT id FROM mails
-	WHERE username = $1 AND mailbox = $2
-	ORDER BY username, mailbox, id
+	WHERE mailbox = $1
+	ORDER BY mailbox, id
 `
 
 const insertMailStmt = `
-	INSERT INTO mails (username, mailbox, id, mail, datetime) VALUES(
-		$1, $2, (
+	INSERT INTO mails (mailbox, id, mail, datetime) VALUES(
+		$1, (
 			SELECT IFNULL(MAX(id)+1,1) AS id FROM mails
-			WHERE username = $1 AND mailbox = $2
-		), $3, $4
+			WHERE mailbox = $1
+		), $2, $3
 	)
 	RETURNING id;
 `
 
 const selectIDForSeqStmt = `
 	SELECT id FROM inboxes
-	WHERE username = $1 AND mailbox = $2 AND seq = $3
+	WHERE mailbox = $1 AND seq = $2
 `
 
 const selectMailNextID = `
 	SELECT IFNULL(MAX(id)+1,1) AS id FROM mails
-	WHERE username = $1 AND mailbox = $2	
+	WHERE mailbox = $1	
 `
 
 const updateMailFlagsStmt = `
-	UPDATE mails SET seen = $1, answered = $2, flagged = $3, deleted = $4 WHERE username = $5 AND mailbox = $6 AND id = $7
+	UPDATE mails SET seen = $1, answered = $2, flagged = $3, deleted = $4 WHERE mailbox = $5 AND id = $6
 `
 
 const deleteMailStmt = `
-	UPDATE mails SET deleted = 1 WHERE username = $1 AND mailbox = $2 AND id = $3
+	UPDATE mails SET deleted = 1 WHERE mailbox = $1 AND id = $2
 `
 
 const expungeMailStmt = `
-	DELETE FROM mails WHERE username = $1 AND mailbox = $2 AND deleted = 1
+	DELETE FROM mails WHERE mailbox = $1 AND deleted = 1
 `
 
 func NewTableMails(db *sql.DB) (*TableMails, error) {
@@ -155,24 +154,24 @@ func NewTableMails(db *sql.DB) (*TableMails, error) {
 	return t, nil
 }
 
-func (t *TableMails) MailCreate(user, mailbox string, data []byte) (int, error) {
+func (t *TableMails) MailCreate(mailbox string, data []byte) (int, error) {
 	var id int
-	err := t.createMail.QueryRow(user, mailbox, data, time.Now().Unix()).Scan(&id)
+	err := t.createMail.QueryRow(mailbox, data, time.Now().Unix()).Scan(&id)
 	return id, err
 }
 
-func (t *TableMails) MailSelect(user, mailbox string, id int) (int, int, []byte, bool, bool, bool, bool, time.Time, error) {
+func (t *TableMails) MailSelect(mailbox string, id int) (int, int, []byte, bool, bool, bool, bool, time.Time, error) {
 	var data []byte
 	var seen, answered, flagged, deleted bool
 	var ts int64
 	var seq, pid int
-	err := t.selectMail.QueryRow(user, mailbox, id).Scan(&seq, &pid, &data, &ts, &seen, &answered, &flagged, &deleted)
+	err := t.selectMail.QueryRow(mailbox, id).Scan(&seq, &pid, &data, &ts, &seen, &answered, &flagged, &deleted)
 	return seq, pid, data, seen, answered, flagged, deleted, time.Unix(ts, 0), err
 }
 
-func (t *TableMails) MailSearch(user, mailbox string) ([]uint32, error) {
+func (t *TableMails) MailSearch(mailbox string) ([]uint32, error) {
 	var ids []uint32
-	rows, err := t.searchMail.Query(user, mailbox)
+	rows, err := t.searchMail.Query(mailbox)
 	if err != nil {
 		return nil, fmt.Errorf("t.searchMail.Query: %w", err)
 	}
@@ -187,41 +186,41 @@ func (t *TableMails) MailSearch(user, mailbox string) ([]uint32, error) {
 	return ids, nil
 }
 
-func (t *TableMails) MailNextID(user, mailbox string) (int, error) {
+func (t *TableMails) MailNextID(mailbox string) (int, error) {
 	var id int
-	err := t.selectMailNextID.QueryRow(user, mailbox).Scan(&id)
+	err := t.selectMailNextID.QueryRow(mailbox).Scan(&id)
 	return id, err
 }
 
-func (t *TableMails) MailIDForSeq(user, mailbox string, seq int) (int, error) {
+func (t *TableMails) MailIDForSeq(mailbox string, seq int) (int, error) {
 	var id int
-	err := t.selectIDForSeq.QueryRow(user, mailbox, seq).Scan(&id)
+	err := t.selectIDForSeq.QueryRow(mailbox, seq).Scan(&id)
 	return id, err
 }
 
-func (t *TableMails) MailUnseen(user, mailbox string) (int, error) {
+func (t *TableMails) MailUnseen(mailbox string) (int, error) {
 	var unseen int
-	err := t.countUnseenMails.QueryRow(user, mailbox).Scan(&unseen)
+	err := t.countUnseenMails.QueryRow(mailbox).Scan(&unseen)
 	return unseen, err
 }
 
-func (t *TableMails) MailUpdateFlags(user, mailbox string, id int, seen, answered, flagged, deleted bool) error {
-	_, err := t.updateMailFlags.Exec(seen, answered, flagged, deleted, user, mailbox, id)
+func (t *TableMails) MailUpdateFlags(mailbox string, id int, seen, answered, flagged, deleted bool) error {
+	_, err := t.updateMailFlags.Exec(seen, answered, flagged, deleted, mailbox, id)
 	return err
 }
 
-func (t *TableMails) MailDelete(user, mailbox, id string) error {
-	_, err := t.deleteMail.Exec(user, mailbox, id)
+func (t *TableMails) MailDelete(mailbox, id string) error {
+	_, err := t.deleteMail.Exec(mailbox, id)
 	return err
 }
 
-func (t *TableMails) MailExpunge(user, mailbox string) error {
-	_, err := t.expungeMail.Exec(user, mailbox)
+func (t *TableMails) MailExpunge(mailbox string) error {
+	_, err := t.expungeMail.Exec(mailbox)
 	return err
 }
 
-func (t *TableMails) MailCount(user, mailbox string) (int, error) {
+func (t *TableMails) MailCount(mailbox string) (int, error) {
 	var count int
-	err := t.countMails.QueryRow(user, mailbox).Scan(&count)
+	err := t.countMails.QueryRow(mailbox).Scan(&count)
 	return count, err
 }

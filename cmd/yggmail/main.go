@@ -30,7 +30,7 @@ var database = flag.String("database", "yggmail.db", "SQLite database file")
 var smtpaddr = flag.String("smtp", "localhost:1025", "SMTP listen address")
 var imapaddr = flag.String("imap", "localhost:1026", "IMAP listen address")
 var peeraddr = flag.String("peer", "", "Yggdrasil static peer")
-var createuser = flag.String("createuser", "", "Create a user")
+var password = flag.Bool("password", false, "Set a new IMAP/SMTP password")
 
 func main() {
 	flag.Parse()
@@ -57,6 +57,9 @@ func main() {
 		if err := storage.ConfigSet("private_key", hex.EncodeToString(sk)); err != nil {
 			panic(err)
 		}
+		if err := storage.MailboxCreate("INBOX"); err != nil {
+			panic(err)
+		}
 		log.Printf("Generated new server identity")
 	} else {
 		skBytes, err := hex.DecodeString(skStr)
@@ -66,35 +69,32 @@ func main() {
 		copy(sk, skBytes)
 	}
 	pk := sk.Public().(ed25519.PublicKey)
-	log.Println("Mail domain:", base62.EncodeToString(pk))
+	log.Printf("Mail address: %s@%s\n", base62.EncodeToString(pk), utils.Domain)
 
 	switch {
-	case createuser != nil && *createuser != "":
-		fmt.Printf("New password: ")
+	case password != nil && *password:
+		log.Println("Please enter your new password:")
 		password1, err := term.ReadPassword(0)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println()
-		fmt.Printf("Confirm password: ")
+		log.Println("Please enter your new password again:")
 		password2, err := term.ReadPassword(0)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println()
 		if !bytes.Equal(password1, password2) {
-			fmt.Println("The supplied passwords do not match")
+			log.Println("The supplied passwords do not match")
 			os.Exit(1)
 		}
-		if err := storage.CreateUser(*createuser, strings.TrimSpace(string(password1))); err != nil {
-			fmt.Printf("Failed to create user %q\n", *createuser)
+		if err := storage.ConfigSetPassword(strings.TrimSpace(string(password1))); err != nil {
+			log.Println("Failed to set password:", err)
 			os.Exit(1)
 		}
-		if err := storage.MailboxCreate(*createuser, "INBOX"); err != nil {
-			panic(err)
-		}
-		fmt.Printf("Created user %q\n", *createuser)
-		fmt.Printf("Email address will be %s@%s%s\n", *createuser, base62.EncodeToString(pk), utils.TLD)
+
+		log.Println("Password for IMAP and SMTP has been updated!")
 		os.Exit(0)
 	}
 

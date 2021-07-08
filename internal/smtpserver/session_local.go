@@ -21,12 +21,12 @@ type SessionLocal struct {
 }
 
 func (s *SessionLocal) Mail(from string, opts smtp.MailOptions) error {
-	_, host, err := utils.ParseAddress(from)
+	pk, err := utils.ParseAddress(from)
 	if err != nil {
 		return fmt.Errorf("parseAddress: %w", err)
 	}
 
-	if host != base62.EncodeToString(s.backend.Config.PublicKey) {
+	if !pk.Equal(s.backend.Config.PublicKey) {
 		return fmt.Errorf("not allowed to send outgoing mail as %s", from)
 	}
 
@@ -56,22 +56,23 @@ func (s *SessionLocal) Data(r io.Reader) error {
 	servers := make(map[string]struct{})
 
 	for _, rcpt := range s.rcpt {
-		localpart, host, err := utils.ParseAddress(rcpt)
+		pk, err := utils.ParseAddress(rcpt)
 		if err != nil {
 			return fmt.Errorf("parseAddress: %w", err)
 		}
+		host := base62.EncodeToString(pk)
 
 		if _, ok := servers[host]; ok {
 			continue
 		}
 		servers[host] = struct{}{}
 
-		if host == base62.EncodeToString(s.backend.Config.PublicKey) {
+		if pk.Equal(s.backend.Config.PublicKey) {
 			var b bytes.Buffer
 			if err := m.WriteTo(&b); err != nil {
 				return fmt.Errorf("m.WriteTo: %w", err)
 			}
-			if _, err := s.backend.Storage.MailCreate(localpart, "INBOX", b.Bytes()); err != nil {
+			if _, err := s.backend.Storage.MailCreate("INBOX", b.Bytes()); err != nil {
 				return fmt.Errorf("s.backend.Storage.StoreMessageFor: %w", err)
 			}
 			continue

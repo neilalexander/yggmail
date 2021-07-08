@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/emersion/go-imap/backend"
+	"github.com/jxskiss/base62"
 )
 
 type User struct {
@@ -13,11 +14,11 @@ type User struct {
 }
 
 func (u *User) Username() string {
-	return u.username
+	return base62.EncodeToString(u.backend.Config.PublicKey)
 }
 
 func (u *User) ListMailboxes(subscribed bool) (mailboxes []backend.Mailbox, err error) {
-	names, err := u.backend.Storage.MailboxList(u.username, subscribed)
+	names, err := u.backend.Storage.MailboxList(subscribed)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +42,7 @@ func (u *User) GetMailbox(name string) (mailbox backend.Mailbox, err error) {
 			name:    "",
 		}, nil
 	}
-	ok, _ := u.backend.Storage.MailboxSelect(u.username, name)
+	ok, _ := u.backend.Storage.MailboxSelect(name)
 	if !ok {
 		return nil, fmt.Errorf("mailbox %q not found", name)
 	}
@@ -53,21 +54,21 @@ func (u *User) GetMailbox(name string) (mailbox backend.Mailbox, err error) {
 }
 
 func (u *User) CreateMailbox(name string) error {
-	return u.backend.Storage.MailboxCreate(u.username, name)
+	return u.backend.Storage.MailboxCreate(name)
 }
 
 func (u *User) DeleteMailbox(name string) error {
 	if name == "INBOX" {
 		return errors.New("Cannot delete INBOX")
 	}
-	return u.backend.Storage.MailboxDelete(u.username, name)
+	return u.backend.Storage.MailboxDelete(name)
 }
 
 func (u *User) RenameMailbox(existingName, newName string) error {
 	if existingName == "INBOX" {
 		return errors.New("Cannot rename INBOX")
 	}
-	return u.backend.Storage.MailboxRename(u.username, existingName, newName)
+	return u.backend.Storage.MailboxRename(existingName, newName)
 }
 
 func (u *User) Logout() error {
