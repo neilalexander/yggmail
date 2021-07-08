@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/emersion/go-smtp"
+	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/config"
 	"github.com/neilalexander/yggmail/internal/smtpsender"
 	"github.com/neilalexander/yggmail/internal/storage"
@@ -58,13 +59,12 @@ func (b *Backend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session, err
 	case BackendModeExternal:
 		// The connection came from our overlay listener, so we should check
 		// that they are who they claim to be
-		if state.Hostname != state.RemoteAddr.String() {
-			return nil, fmt.Errorf("You are not who you claim to be")
-		}
-
 		pks, err := hex.DecodeString(state.RemoteAddr.String())
 		if err != nil {
 			return nil, fmt.Errorf("hex.DecodeString: %w", err)
+		}
+		if state.Hostname != base62.EncodeToString(pks) {
+			return nil, fmt.Errorf("You are not who you claim to be")
 		}
 
 		b.Log.Println("Incoming SMTP session from", state.RemoteAddr.String())
