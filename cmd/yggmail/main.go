@@ -123,6 +123,7 @@ func main() {
 		imapServer := server.New(imapBackend)
 		imapServer.Addr = *imapaddr
 		imapServer.AllowInsecureAuth = true
+		imapServer.Debug = os.Stdout
 		imapServer.EnableAuth(sasl.Login, func(conn server.Conn) sasl.Server {
 			return sasl.NewLoginServer(func(username, password string) error {
 				_, err := imapBackend.Login(nil, username, password)

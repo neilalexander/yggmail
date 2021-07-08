@@ -22,6 +22,13 @@ type Mailbox struct {
 func (mbox *Mailbox) getIDsFromSeqSet(uid bool, seqSet *imap.SeqSet) ([]int32, error) {
 	var ids []int32
 	for _, set := range seqSet.Set {
+		if set.Stop == 0 {
+			next, err := mbox.backend.Storage.MailNextID(mbox.user.username, mbox.name)
+			if err != nil {
+				return nil, fmt.Errorf("mbox.backend.Storage.MailNextID: %w", err)
+			}
+			set.Stop = uint32(next - 1)
+		}
 		for i := set.Start; i <= set.Stop; i++ {
 			if !uid {
 				pid, err := mbox.backend.Storage.MailIDForSeq(mbox.user.username, mbox.name, int(i))
@@ -108,13 +115,16 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 		return fmt.Errorf("mbox.getIDsFromSeqSet: %w", err)
 	}
 
+	fmt.Println("FETCHING", ids, uid)
+	fmt.Println("SEQ SET", seqSet)
+
 	for _, id := range ids {
 		mseq, mid, body, seen, answered, flagged, deleted, datetime, err := mbox.backend.Storage.MailSelect(mbox.user.username, mbox.name, int(id))
 		if err != nil {
 			continue
 		}
 
-		fetched := imap.NewMessage(uint32(id)+1, items)
+		fetched := imap.NewMessage(uint32(id), items)
 		fetched.SeqNum = uint32(mseq)
 		fetched.Uid = uint32(mid)
 
