@@ -2,13 +2,13 @@ package smtpserver
 
 import (
 	"bytes"
+	"encoding/hex"
 	"fmt"
 	"io"
 	"time"
 
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-smtp"
-	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/smtpsender"
 	"github.com/neilalexander/yggmail/internal/utils"
 )
@@ -48,7 +48,7 @@ func (s *SessionLocal) Data(r io.Reader) error {
 	m.Header.Add(
 		"Received", fmt.Sprintf("from %s by Yggmail %s; %s",
 			s.state.RemoteAddr.String(),
-			base62.EncodeToString(s.backend.Config.PublicKey),
+			hex.EncodeToString(s.backend.Config.PublicKey),
 			time.Now().String(),
 		),
 	)
@@ -60,7 +60,7 @@ func (s *SessionLocal) Data(r io.Reader) error {
 		if err != nil {
 			return fmt.Errorf("parseAddress: %w", err)
 		}
-		host := base62.EncodeToString(pk)
+		host := hex.EncodeToString(pk)
 
 		if _, ok := servers[host]; ok {
 			continue

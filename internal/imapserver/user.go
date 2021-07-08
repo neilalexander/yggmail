@@ -1,11 +1,11 @@
 package imapserver
 
 import (
+	"encoding/hex"
 	"errors"
 	"fmt"
 
 	"github.com/emersion/go-imap/backend"
-	"github.com/jxskiss/base62"
 )
 
 type User struct {
@@ -14,7 +14,7 @@ type User struct {
 }
 
 func (u *User) Username() string {
-	return base62.EncodeToString(u.backend.Config.PublicKey)
+	return hex.EncodeToString(u.backend.Config.PublicKey)
 }
 
 func (u *User) ListMailboxes(subscribed bool) (mailboxes []backend.Mailbox, err error) {

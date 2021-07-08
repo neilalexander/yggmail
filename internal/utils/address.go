@@ -2,10 +2,9 @@ package utils
 
 import (
 	"crypto/ed25519"
+	"encoding/hex"
 	"fmt"
 	"strings"
-
-	"github.com/jxskiss/base62"
 )
 
 const Domain = "yggmail"
@@ -25,9 +24,9 @@ func ParseAddress(email string) (ed25519.PublicKey, error) {
 	if email[at+1:] != Domain {
 		return nil, fmt.Errorf("invalid email domain")
 	}
-	pk, err := base62.DecodeString(email[:at])
+	pk, err := hex.DecodeString(email[:at])
 	if err != nil {
-		return nil, fmt.Errorf("base62.DecodeString: %w", err)
+		return nil, fmt.Errorf("hex.DecodeString: %w", err)
 	}
 	ed := make(ed25519.PublicKey, ed25519.PublicKeySize)
 	copy(ed, pk)

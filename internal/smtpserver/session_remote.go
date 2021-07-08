@@ -10,16 +10,14 @@ import (
 
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-smtp"
-	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/utils"
 )
 
 type SessionRemote struct {
-	backend    *Backend
-	state      *smtp.ConnectionState
-	public     ed25519.PublicKey
-	from       string
-	localparts []string
+	backend *Backend
+	state   *smtp.ConnectionState
+	public  ed25519.PublicKey
+	from    string
 }
 
 func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
@@ -28,12 +26,7 @@ func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
 		return fmt.Errorf("mail.ParseAddress: %w", err)
 	}
 
-	pks, err := hex.DecodeString(s.state.RemoteAddr.String())
-	if err != nil {
-		return fmt.Errorf("hex.DecodeString: %w", err)
-	}
-
-	if remote := base62.EncodeToString(pks); base62.EncodeToString(pk) != remote {
+	if remote := s.state.RemoteAddr.String(); hex.EncodeToString(pk) != remote {
 		return fmt.Errorf("not allowed to send incoming mail as %s", from)
 	}
 
@@ -62,7 +55,7 @@ func (s *SessionRemote) Data(r io.Reader) error {
 
 	m.Header.Add(
 		"Received", fmt.Sprintf("from Yggmail %s; %s",
-			base62.EncodeToString(s.public),
+			hex.EncodeToString(s.public),
 			time.Now().String(),
 		),
 	)

@@ -9,7 +9,6 @@ import (
 
 	iwt "github.com/Arceliar/ironwood/types"
 	gologme "github.com/gologme/log"
-	"github.com/jxskiss/base62"
 	"github.com/neilalexander/utp"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
 	"github.com/yggdrasil-network/yggdrasil-go/src/core"
@@ -64,7 +63,7 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 
 func (t *YggdrasilTransport) Dial(host string) (net.Conn, error) {
 	addr := make(iwt.Addr, ed25519.PublicKeySize)
-	k, err := base62.DecodeString(host)
+	k, err := hex.DecodeString(host)
 	if err != nil {
 		return nil, err
 	}

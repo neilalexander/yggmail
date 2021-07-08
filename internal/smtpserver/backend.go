@@ -6,7 +6,6 @@ import (
 	"log"
 
 	"github.com/emersion/go-smtp"
-	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/config"
 	"github.com/neilalexander/yggmail/internal/smtpsender"
 	"github.com/neilalexander/yggmail/internal/storage"
@@ -37,7 +36,7 @@ func (b *Backend) Login(state *smtp.ConnectionState, username, password string) 
 				return nil, fmt.Errorf("failed to authenticate: wrong domain in username")
 			}
 		}
-		username = base62.EncodeToString(b.Config.PublicKey)
+		username = hex.EncodeToString(b.Config.PublicKey)
 		// The connection came from our local listener
 		if authed, err := b.Storage.ConfigTryPassword(password); err != nil {
 			b.Log.Printf("Failed to authenticate SMTP user %q due to error: %s", username, err)
@@ -71,7 +70,7 @@ func (b *Backend) AnonymousLogin(state *smtp.ConnectionState) (smtp.Session, err
 		if err != nil {
 			return nil, fmt.Errorf("hex.DecodeString: %w", err)
 		}
-		remote := base62.EncodeToString(pks)
+		remote := hex.EncodeToString(pks)
 		if state.Hostname != remote {
 			return nil, fmt.Errorf("You are not who you claim to be")
 		}

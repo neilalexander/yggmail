@@ -14,7 +14,6 @@ import (
 	"github.com/emersion/go-imap/server"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
-	"github.com/jxskiss/base62"
 	"golang.org/x/term"
 
 	"github.com/neilalexander/yggmail/internal/config"
@@ -69,7 +68,7 @@ func main() {
 		copy(sk, skBytes)
 	}
 	pk := sk.Public().(ed25519.PublicKey)
-	log.Printf("Mail address: %s@%s\n", base62.EncodeToString(pk), utils.Domain)
+	log.Printf("Mail address: %s@%s\n", hex.EncodeToString(pk), utils.Domain)
 
 	switch {
 	case password != nil && *password:
@@ -150,7 +149,7 @@ func main() {
 
 		localServer := smtp.NewServer(localBackend)
 		localServer.Addr = *smtpaddr
-		localServer.Domain = base62.EncodeToString(pk)
+		localServer.Domain = hex.EncodeToString(pk)
 		localServer.MaxMessageBytes = 1024 * 1024
 		localServer.MaxRecipients = 50
 		localServer.AllowInsecureAuth = true
@@ -179,7 +178,7 @@ func main() {
 		}
 
 		overlayServer := smtp.NewServer(overlayBackend)
-		overlayServer.Domain = base62.EncodeToString(pk)
+		overlayServer.Domain = hex.EncodeToString(pk)
 		overlayServer.MaxMessageBytes = 1024 * 1024
 		overlayServer.MaxRecipients = 50
 		overlayServer.AuthDisabled = true
