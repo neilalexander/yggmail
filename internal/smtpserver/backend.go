@@ -10,6 +10,7 @@ import (
 	"github.com/neilalexander/yggmail/internal/config"
 	"github.com/neilalexander/yggmail/internal/smtpsender"
 	"github.com/neilalexander/yggmail/internal/storage"
+	"github.com/neilalexander/yggmail/internal/utils"
 )
 
 type BackendMode int
@@ -30,6 +31,14 @@ type Backend struct {
 func (b *Backend) Login(state *smtp.ConnectionState, username, password string) (smtp.Session, error) {
 	switch b.Mode {
 	case BackendModeInternal:
+		// If our username is email-like, then take just the localpart
+		if localpart, host, err := utils.ParseAddress(username); err == nil {
+			if host != base62.EncodeToString(b.Config.PublicKey) {
+				return nil, fmt.Errorf("failed to authenticate: wrong domain in username")
+			}
+			username = localpart
+		}
+
 		// The connection came from our local listener
 		if authed, err := b.Storage.TryAuthenticate(username, password); err != nil {
 			b.Log.Printf("Failed to authenticate SMTP user %q due to error: %s", username, err)

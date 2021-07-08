@@ -11,6 +11,7 @@ import (
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-smtp"
 	"github.com/jxskiss/base62"
+	"github.com/neilalexander/yggmail/internal/utils"
 )
 
 type SessionRemote struct {
@@ -22,7 +23,7 @@ type SessionRemote struct {
 }
 
 func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
-	_, host, err := parseAddress(from)
+	_, host, err := utils.ParseAddress(from)
 	if err != nil {
 		return fmt.Errorf("mail.ParseAddress: %w", err)
 	}
@@ -41,7 +42,7 @@ func (s *SessionRemote) Mail(from string, opts smtp.MailOptions) error {
 }
 
 func (s *SessionRemote) Rcpt(to string) error {
-	user, host, err := parseAddress(to)
+	user, host, err := utils.ParseAddress(to)
 	if err != nil {
 		return fmt.Errorf("mail.ParseAddress: %w", err)
 	}

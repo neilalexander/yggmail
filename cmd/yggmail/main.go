@@ -23,6 +23,7 @@ import (
 	"github.com/neilalexander/yggmail/internal/smtpserver"
 	"github.com/neilalexander/yggmail/internal/storage/sqlite3"
 	"github.com/neilalexander/yggmail/internal/transport"
+	"github.com/neilalexander/yggmail/internal/utils"
 )
 
 var database = flag.String("database", "yggmail.db", "SQLite database file")
@@ -93,7 +94,7 @@ func main() {
 			panic(err)
 		}
 		fmt.Printf("Created user %q\n", *createuser)
-		fmt.Printf("Email address will be %s@%s%s\n", *createuser, base62.EncodeToString(pk), smtpserver.TLD)
+		fmt.Printf("Email address will be %s@%s%s\n", *createuser, base62.EncodeToString(pk), utils.TLD)
 		os.Exit(0)
 	}
 

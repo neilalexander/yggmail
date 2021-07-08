@@ -111,12 +111,8 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 
 	ids, err := mbox.getIDsFromSeqSet(uid, seqSet)
 	if err != nil {
-		fmt.Println("Failed to get IDs from sequences:", err)
 		return fmt.Errorf("mbox.getIDsFromSeqSet: %w", err)
 	}
-
-	fmt.Println("FETCHING", ids, uid)
-	fmt.Println("SEQ SET", seqSet)
 
 	for _, id := range ids {
 		mseq, mid, body, seen, answered, flagged, deleted, datetime, err := mbox.backend.Storage.MailSelect(mbox.user.username, mbox.name, int(id))

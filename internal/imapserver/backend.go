@@ -6,8 +6,10 @@ import (
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend"
+	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/config"
 	"github.com/neilalexander/yggmail/internal/storage"
+	"github.com/neilalexander/yggmail/internal/utils"
 )
 
 type Backend struct {
@@ -17,6 +19,14 @@ type Backend struct {
 }
 
 func (b *Backend) Login(_ *imap.ConnInfo, username, password string) (backend.User, error) {
+	// If our username is email-like, then take just the localpart
+	if localpart, host, err := utils.ParseAddress(username); err == nil {
+		if host != base62.EncodeToString(b.Config.PublicKey) {
+			return nil, fmt.Errorf("failed to authenticate: wrong domain in username")
+		}
+		username = localpart
+	}
+
 	if authed, err := b.Storage.TryAuthenticate(username, password); err != nil {
 		b.Log.Printf("Failed to authenticate IMAP user %q due to error: %s", username, err)
 		return nil, fmt.Errorf("failed to authenticate: %w", err)

@@ -1,4 +1,4 @@
-package smtpserver
+package utils
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 
 const TLD = ".yggmail"
 
-func parseAddress(email string) (string, string, error) {
+func ParseAddress(email string) (string, string, error) {
 	if !strings.HasSuffix(email, TLD) {
 		return "", "", fmt.Errorf("invalid TLD")
 	}

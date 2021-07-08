@@ -10,6 +10,7 @@ import (
 	"github.com/emersion/go-smtp"
 	"github.com/jxskiss/base62"
 	"github.com/neilalexander/yggmail/internal/smtpsender"
+	"github.com/neilalexander/yggmail/internal/utils"
 )
 
 type SessionLocal struct {
@@ -20,7 +21,7 @@ type SessionLocal struct {
 }
 
 func (s *SessionLocal) Mail(from string, opts smtp.MailOptions) error {
-	_, host, err := parseAddress(from)
+	_, host, err := utils.ParseAddress(from)
 	if err != nil {
 		return fmt.Errorf("parseAddress: %w", err)
 	}
@@ -55,7 +56,7 @@ func (s *SessionLocal) Data(r io.Reader) error {
 	servers := make(map[string]struct{})
 
 	for _, rcpt := range s.rcpt {
-		localpart, host, err := parseAddress(rcpt)
+		localpart, host, err := utils.ParseAddress(rcpt)
 		if err != nil {
 			return fmt.Errorf("parseAddress: %w", err)
 		}
