@@ -107,7 +107,10 @@ func (s *SessionLocal) Data(r io.Reader) error {
 	return nil
 }
 
-func (s *SessionLocal) Reset() {}
+func (s *SessionLocal) Reset() {
+	s.rcpt = s.rcpt[:0]
+	s.from = ""
+}
 
 func (s *SessionLocal) Logout() error {
 	return nil
