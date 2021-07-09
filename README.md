@@ -65,7 +65,7 @@ The following command line switches are supported by the `yggmail` binary:
 There are a few important notes:
 
 * Yggmail needs to be running in order to receive inbound emails — it's therefore important to run Yggmail somewhere that will have good uptime;
-* Yggmail tries to guarantee that senders are who they say they are. Your `From` address must be your Yggmail address (or at the very least, from your Yggmail domain);
+* Yggmail tries to guarantee that senders are who they say they are. Your `From` address must be your Yggmail address;
 * You can only email other Yggmail users, not regular email addresses on the public Internet;
 * You may need to configure your client to allow "insecure" or "plaintext" authentication to IMAP/SMTP — this is because we don't support SSL/TLS on the IMAP/SMTP listeners yet;
 * Yggmail won't transport mails larger than 1MB right now.
@@ -75,6 +75,7 @@ There are a few important notes:
 There are probably all sorts of bugs, but the ones that we know of are:
 
 * IMAP behaviour might not be entirely spec-compliant in all cases, so your mileage with mail clients might vary;
-* SMTP queues up outbound mails in memory rather than in the database right now — if you restart Yggmail, any unsent mails will be lost.
+* SMTP queues up outbound mails in memory rather than in the database right now — if you restart Yggmail, any unsent mails will be lost;
+* IMAP search isn't implemented yet and will instead return all mails.
 
 The code's also a bit of a mess, so sorry about that.
