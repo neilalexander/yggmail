@@ -58,17 +58,21 @@ func (u *User) CreateMailbox(name string) error {
 }
 
 func (u *User) DeleteMailbox(name string) error {
-	if name == "INBOX" {
-		return errors.New("Cannot delete INBOX")
+	switch name {
+	case "INBOX", "Outbox":
+		return errors.New("Cannot delete " + name)
+	default:
+		return u.backend.Storage.MailboxDelete(name)
 	}
-	return u.backend.Storage.MailboxDelete(name)
 }
 
 func (u *User) RenameMailbox(existingName, newName string) error {
-	if existingName == "INBOX" {
-		return errors.New("Cannot rename INBOX")
+	switch existingName {
+	case "INBOX", "Outbox":
+		return errors.New("Cannot rename " + existingName)
+	default:
+		return u.backend.Storage.MailboxRename(existingName, newName)
 	}
-	return u.backend.Storage.MailboxRename(existingName, newName)
 }
 
 func (u *User) Logout() error {

@@ -18,7 +18,7 @@ type Backend struct {
 	Storage storage.Storage
 }
 
-func (b *Backend) Login(_ *imap.ConnInfo, username, password string) (backend.User, error) {
+func (b *Backend) Login(conn *imap.ConnInfo, username, password string) (backend.User, error) {
 	// If our username is email-like, then take just the localpart
 	if pk, err := utils.ParseAddress(username); err == nil {
 		if !pk.Equal(b.Config.PublicKey) {
@@ -34,7 +34,7 @@ func (b *Backend) Login(_ *imap.ConnInfo, username, password string) (backend.Us
 		b.Log.Printf("Failed to authenticate IMAP user %q\n", username)
 		return nil, backend.ErrInvalidCredentials
 	}
-	defer b.Log.Printf("Authenticated IMAP user %q\n", username)
+	defer b.Log.Printf("Authenticated IMAP user from %s as %q\n", conn.RemoteAddr.String(), username)
 	user := &User{
 		backend:  b,
 		username: username,

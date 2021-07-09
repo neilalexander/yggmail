@@ -45,7 +45,7 @@ func (b *Backend) Login(state *smtp.ConnectionState, username, password string) 
 			b.Log.Printf("Failed to authenticate SMTP user %q\n", username)
 			return nil, smtp.ErrAuthRequired
 		}
-		defer b.Log.Printf("Authenticated SMTP user %q\n", username)
+		defer b.Log.Printf("Authenticated SMTP user from %s as %q\n", state.RemoteAddr.String(), username)
 		return &SessionLocal{
 			backend: b,
 			state:   state,

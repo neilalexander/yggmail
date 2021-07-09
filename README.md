@@ -25,7 +25,12 @@ Yggdrasil is well-suited for ad-hoc mail delivery and allows Yggmail to work eve
 Use a recent version of Go to install Yggmail:
 
 ```
-go install github.com/neilalexander/yggmail/cmd/yggmail
+go install github.com/neilalexander/yggmail/cmd/yggmail@latest
+```
+
+It will then be installed into your `GOPATH`, so add that to your environment:
+```
+export PATH=$PATH:`go env GOPATH`/bin
 ```
 
 Create a mailbox and set your password. Your Yggmail database will automatically be created in your working directory if it doesn't already exist:

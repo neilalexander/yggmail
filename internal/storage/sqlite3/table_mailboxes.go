@@ -37,7 +37,7 @@ const mailboxesSelect = `
 `
 
 const mailboxesCreate = `
-	INSERT INTO mailboxes (mailbox) VALUES($1)
+	INSERT OR IGNORE INTO mailboxes (mailbox) VALUES($1)
 `
 
 const mailboxesRename = `

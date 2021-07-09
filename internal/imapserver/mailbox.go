@@ -273,6 +273,10 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.
 }
 
 func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string) error {
+	if destName == "Outbox" {
+		return fmt.Errorf("can't copy into Outbox as it is a protected folder")
+	}
+
 	ids, err := mbox.getIDsFromSeqSet(uid, seqSet)
 	if err != nil {
 		return fmt.Errorf("mbox.getIDsFromSeqSet: %w", err)

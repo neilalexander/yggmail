@@ -66,9 +66,6 @@ func main() {
 		if err := storage.ConfigSet("private_key", hex.EncodeToString(sk)); err != nil {
 			panic(err)
 		}
-		if err := storage.MailboxCreate("INBOX"); err != nil {
-			panic(err)
-		}
 		log.Printf("Generated new server identity")
 	} else {
 		skBytes, err := hex.DecodeString(skStr)
@@ -79,6 +76,12 @@ func main() {
 	}
 	pk := sk.Public().(ed25519.PublicKey)
 	log.Printf("Mail address: %s@%s\n", hex.EncodeToString(pk), utils.Domain)
+
+	for _, name := range []string{"INBOX", "Outbox"} {
+		if err := storage.MailboxCreate(name); err != nil {
+			panic(err)
+		}
+	}
 
 	switch {
 	case password != nil && *password:
