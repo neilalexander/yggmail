@@ -4,6 +4,8 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	"github.com/neilalexander/yggmail/internal/storage/types"
 )
 
 type TableMails struct {
@@ -35,7 +37,6 @@ const mailsSchema = `
 		FOREIGN KEY (mailbox) REFERENCES mailboxes(mailbox) ON DELETE CASCADE ON UPDATE CASCADE
 	);
 
-	DROP VIEW IF EXISTS inboxes;
 	CREATE VIEW IF NOT EXISTS inboxes AS SELECT * FROM (
 		SELECT ROW_NUMBER() OVER (PARTITION BY mailbox) AS seq, * FROM mails
 	)
@@ -160,13 +161,14 @@ func (t *TableMails) MailCreate(mailbox string, data []byte) (int, error) {
 	return id, err
 }
 
-func (t *TableMails) MailSelect(mailbox string, id int) (int, int, []byte, bool, bool, bool, bool, time.Time, error) {
-	var data []byte
-	var seen, answered, flagged, deleted bool
-	var ts int64
-	var seq, pid int
-	err := t.selectMail.QueryRow(mailbox, id).Scan(&seq, &pid, &data, &ts, &seen, &answered, &flagged, &deleted)
-	return seq, pid, data, seen, answered, flagged, deleted, time.Unix(ts, 0), err
+func (t *TableMails) MailSelect(mailbox string, id int) (int, *types.Mail, error) {
+	var seq int
+	mail := &types.Mail{}
+	err := t.selectMail.QueryRow(mailbox, id).Scan(
+		&seq, &mail.ID, &mail.Mail, &mail.Date,
+		&mail.Seen, &mail.Answered, &mail.Flagged, &mail.Deleted,
+	)
+	return seq, mail, err
 }
 
 func (t *TableMails) MailSearch(mailbox string) ([]uint32, error) {

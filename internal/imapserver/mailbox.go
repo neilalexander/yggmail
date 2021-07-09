@@ -11,6 +11,7 @@ import (
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend/backendutil"
 	"github.com/emersion/go-message/textproto"
+	"github.com/neilalexander/yggmail/internal/storage/types"
 )
 
 type Mailbox struct {
@@ -115,17 +116,17 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 	}
 
 	for _, id := range ids {
-		mseq, mid, body, seen, answered, flagged, deleted, datetime, err := mbox.backend.Storage.MailSelect(mbox.name, int(id))
+		mseq, mail, err := mbox.backend.Storage.MailSelect(mbox.name, int(id))
 		if err != nil {
 			continue
 		}
 
 		fetched := imap.NewMessage(uint32(id), items)
 		fetched.SeqNum = uint32(mseq)
-		fetched.Uid = uint32(mid)
+		fetched.Uid = uint32(mail.ID)
 
 		get := func() (io.Reader, textproto.Header, error) {
-			bodyreader := bufio.NewReader(bytes.NewReader(body))
+			bodyreader := bufio.NewReader(bytes.NewReader(mail.Mail))
 			hdr, err := textproto.ReadHeader(bodyreader)
 			if err != nil {
 				return nil, textproto.Header{}, fmt.Errorf("textproto.ReadHeader: %w", err)
@@ -155,24 +156,24 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 
 			case imap.FetchFlags:
 				fetched.Flags = []string{}
-				if seen {
+				if mail.Seen {
 					fetched.Flags = append(fetched.Flags, "\\Seen")
 				}
-				if answered {
+				if mail.Answered {
 					fetched.Flags = append(fetched.Flags, "\\Answered")
 				}
-				if flagged {
+				if mail.Flagged {
 					fetched.Flags = append(fetched.Flags, "\\Flagged")
 				}
-				if deleted {
+				if mail.Deleted {
 					fetched.Flags = append(fetched.Flags, "\\Deleted")
 				}
 
 			case imap.FetchInternalDate:
-				fetched.InternalDate = datetime
+				fetched.InternalDate = mail.Date
 
 			case imap.FetchRFC822Size:
-				fetched.Size = uint32(len(body))
+				fetched.Size = uint32(len(mail.Mail))
 
 			case imap.FetchUid:
 				fetched.Uid = uint32(id)
@@ -241,11 +242,10 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.
 	}
 
 	for _, id := range ids {
-		var seen, answered, flagged, deleted bool
-		var mid int
+		var mail *types.Mail
 		if op != imap.SetFlags {
 			var err error
-			_, mid, _, seen, answered, flagged, deleted, _, err = mbox.backend.Storage.MailSelect(mbox.name, int(id))
+			_, mail, err = mbox.backend.Storage.MailSelect(mbox.name, int(id))
 			if err != nil {
 				return fmt.Errorf("mbox.backend.Storage.MailSelect: %w", err)
 			}
@@ -253,18 +253,19 @@ func (mbox *Mailbox) UpdateMessagesFlags(uid bool, seqSet *imap.SeqSet, op imap.
 		for _, flag := range flags {
 			switch flag {
 			case "\\Seen":
-				seen = op != imap.RemoveFlags
+				mail.Seen = op != imap.RemoveFlags
 			case "\\Answered":
-				answered = op != imap.RemoveFlags
+				mail.Answered = op != imap.RemoveFlags
 			case "\\Flagged":
-				flagged = op != imap.RemoveFlags
+				mail.Flagged = op != imap.RemoveFlags
 			case "\\Deleted":
-				deleted = op != imap.RemoveFlags
+				mail.Deleted = op != imap.RemoveFlags
 			}
 		}
 
 		if err := mbox.backend.Storage.MailUpdateFlags(
-			mbox.name, int(mid), seen, answered, flagged, deleted,
+			mbox.name, int(mail.ID), mail.Seen,
+			mail.Answered, mail.Flagged, mail.Deleted,
 		); err != nil {
 			return err
 		}
@@ -283,15 +284,17 @@ func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string
 	}
 
 	for _, id := range ids {
-		_, _, body, seen, answered, flagged, deleted, _, err := mbox.backend.Storage.MailSelect(mbox.name, int(id))
+		_, mail, err := mbox.backend.Storage.MailSelect(mbox.name, int(id))
 		if err != nil {
 			return fmt.Errorf("mbox.backend.Storage.MailSelect: %w", err)
 		}
-		pid, err := mbox.backend.Storage.MailCreate(destName, body)
+		pid, err := mbox.backend.Storage.MailCreate(destName, mail.Mail)
 		if err != nil {
 			return fmt.Errorf("mbox.backend.Storage.MailCreate: %w", err)
 		}
-		if err = mbox.backend.Storage.MailUpdateFlags(mbox.name, pid, seen, answered, flagged, deleted); err != nil {
+		if err = mbox.backend.Storage.MailUpdateFlags(
+			mbox.name, pid, mail.Seen, mail.Answered, mail.Flagged, mail.Deleted,
+		); err != nil {
 			return fmt.Errorf("mbox.backend.Storage.MailUpdateFlags: %w", err)
 		}
 	}

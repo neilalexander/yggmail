@@ -1,6 +1,6 @@
 package storage
 
-import "time"
+import "github.com/neilalexander/yggmail/internal/storage/types"
 
 type Storage interface {
 	ConfigGet(key string) (string, error)
@@ -19,7 +19,7 @@ type Storage interface {
 	MailboxSubscribe(name string, subscribed bool) error
 
 	MailCreate(mailbox string, data []byte) (int, error)
-	MailSelect(mailbox string, id int) (int, int, []byte, bool, bool, bool, bool, time.Time, error)
+	MailSelect(mailbox string, id int) (int, *types.Mail, error)
 	MailSearch(mailbox string) ([]uint32, error)
 	MailUpdateFlags(mailbox string, id int, seen, answered, flagged, deleted bool) error
 	MailDelete(mailbox, id string) error
