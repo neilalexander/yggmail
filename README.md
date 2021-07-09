@@ -80,7 +80,6 @@ There are a few important notes:
 There are probably all sorts of bugs, but the ones that we know of are:
 
 * IMAP behaviour might not be entirely spec-compliant in all cases, so your mileage with mail clients might vary;
-* SMTP queues up outbound mails in memory rather than in the database right now — if you restart Yggmail, any unsent mails will be lost;
 * IMAP search isn't implemented yet and will instead return all mails.
 
 The code's also a bit of a mess, so sorry about that.

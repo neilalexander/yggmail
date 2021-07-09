@@ -43,7 +43,7 @@ func (qs *Queues) manager() {
 	for _, destination := range destinations {
 		_, _ = qs.queueFor(destination)
 	}
-	time.AfterFunc(time.Minute*5, qs.manager)
+	time.AfterFunc(time.Minute*10, qs.manager)
 }
 
 func (qs *Queues) QueueFor(from string, rcpts []string, content []byte) error {
