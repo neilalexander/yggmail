@@ -21,6 +21,8 @@ type SessionLocal struct {
 }
 
 func (s *SessionLocal) Mail(from string, opts smtp.MailOptions) error {
+	s.rcpt = s.rcpt[:0]
+
 	pk, err := utils.ParseAddress(from)
 	if err != nil {
 		return fmt.Errorf("parseAddress: %w", err)
