@@ -12,3 +12,9 @@ type Mail struct {
 	Flagged  bool
 	Deleted  bool
 }
+
+type QueuedMail struct {
+	ID   int
+	From string
+	Rcpt string
+}

@@ -22,7 +22,13 @@ type Storage interface {
 	MailSelect(mailbox string, id int) (int, *types.Mail, error)
 	MailSearch(mailbox string) ([]uint32, error)
 	MailUpdateFlags(mailbox string, id int, seen, answered, flagged, deleted bool) error
-	MailDelete(mailbox, id string) error
+	MailDelete(mailbox string, id int) error
 	MailExpunge(mailbox string) error
 	MailCount(mailbox string) (int, error)
+
+	QueueListDestinations() ([]string, error)
+	QueueMailIDsForDestination(destination string) ([]types.QueuedMail, error)
+	QueueInsertDestinationForID(destination string, id int, from, rcpt string) error
+	QueueDeleteDestinationForID(destination string, id int) error
+	QueueSelectIsMessagePendingSend(mailbox string, id int) (bool, error)
 }

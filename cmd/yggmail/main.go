@@ -126,7 +126,7 @@ func main() {
 		panic(err)
 	}
 
-	queues := smtpsender.NewQueues(cfg, log, transport)
+	queues := smtpsender.NewQueues(cfg, log, transport, storage)
 
 	go func() {
 		defer wg.Done()

@@ -163,11 +163,13 @@ func (t *TableMails) MailCreate(mailbox string, data []byte) (int, error) {
 
 func (t *TableMails) MailSelect(mailbox string, id int) (int, *types.Mail, error) {
 	var seq int
+	var datetime int64
 	mail := &types.Mail{}
 	err := t.selectMail.QueryRow(mailbox, id).Scan(
-		&seq, &mail.ID, &mail.Mail, &mail.Date,
+		&seq, &mail.ID, &mail.Mail, &datetime,
 		&mail.Seen, &mail.Answered, &mail.Flagged, &mail.Deleted,
 	)
+	mail.Date = time.Unix(datetime, 0)
 	return seq, mail, err
 }
 
@@ -211,7 +213,7 @@ func (t *TableMails) MailUpdateFlags(mailbox string, id int, seen, answered, fla
 	return err
 }
 
-func (t *TableMails) MailDelete(mailbox, id string) error {
+func (t *TableMails) MailDelete(mailbox string, id int) error {
 	_, err := t.deleteMail.Exec(mailbox, id)
 	return err
 }

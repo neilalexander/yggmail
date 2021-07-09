@@ -9,7 +9,6 @@ import (
 
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-smtp"
-	"github.com/neilalexander/yggmail/internal/smtpsender"
 	"github.com/neilalexander/yggmail/internal/utils"
 )
 
@@ -55,54 +54,16 @@ func (s *SessionLocal) Data(r io.Reader) error {
 		),
 	)
 
-	servers := make(map[string]struct{})
-
-	for _, rcpt := range s.rcpt {
-		pk, err := utils.ParseAddress(rcpt)
-		if err != nil {
-			return fmt.Errorf("parseAddress: %w", err)
-		}
-		host := hex.EncodeToString(pk)
-
-		if _, ok := servers[host]; ok {
-			continue
-		}
-		servers[host] = struct{}{}
-
-		if pk.Equal(s.backend.Config.PublicKey) {
-			var b bytes.Buffer
-			if err := m.WriteTo(&b); err != nil {
-				return fmt.Errorf("m.WriteTo: %w", err)
-			}
-			if _, err := s.backend.Storage.MailCreate("INBOX", b.Bytes()); err != nil {
-				return fmt.Errorf("s.backend.Storage.StoreMessageFor: %w", err)
-			}
-			continue
-		}
-
-		queue, err := s.backend.Queues.QueueFor(host)
-		if err != nil {
-			return fmt.Errorf("s.backend.Queues.QueueFor: %w", err)
-		}
-
-		mail := &smtpsender.QueuedMail{
-			From:        s.from,
-			Rcpt:        rcpt,
-			Destination: host,
-		}
-
-		var b bytes.Buffer
-		if err := m.WriteTo(&b); err != nil {
-			return fmt.Errorf("m.WriteTo: %w", err)
-		}
-		mail.Content = b.Bytes()
-
-		if err := queue.Queue(mail); err != nil {
-			return fmt.Errorf("queue.Queue: %w", err)
-		}
-
-		s.backend.Log.Println("Queued mail for", mail.Destination)
+	var b bytes.Buffer
+	if err := m.WriteTo(&b); err != nil {
+		return fmt.Errorf("m.WriteTo: %w", err)
 	}
+
+	if err := s.backend.Queues.QueueFor(s.from, s.rcpt, b.Bytes()); err != nil {
+		return fmt.Errorf("s.backend.Queues.QueueFor: %w", err)
+	}
+
+	s.backend.Log.Println("Queued mail for", s.rcpt)
 
 	return nil
 }

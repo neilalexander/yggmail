@@ -11,6 +11,7 @@ type SQLite3Storage struct {
 	*TableConfig
 	*TableMailboxes
 	*TableMails
+	*TableQueue
 }
 
 func NewSQLite3StorageStorage(filename string) (*SQLite3Storage, error) {
@@ -30,6 +31,10 @@ func NewSQLite3StorageStorage(filename string) (*SQLite3Storage, error) {
 	s.TableMails, err = NewTableMails(db)
 	if err != nil {
 		return nil, fmt.Errorf("NewTableMails: %w", err)
+	}
+	s.TableQueue, err = NewTableQueue(db)
+	if err != nil {
+		return nil, fmt.Errorf("NewTableQueue: %w", err)
 	}
 	return s, nil
 }
