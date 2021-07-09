@@ -8,9 +8,10 @@ import (
 )
 
 type TableConfig struct {
-	db  *sql.DB
-	get *sql.Stmt
-	set *sql.Stmt
+	db     *sql.DB
+	writer *Writer
+	get    *sql.Stmt
+	set    *sql.Stmt
 }
 
 const configSchema = `
@@ -29,9 +30,10 @@ const configSet = `
 	INSERT OR REPLACE INTO config (key, value) VALUES($1, $2)
 `
 
-func NewTableConfig(db *sql.DB) (*TableConfig, error) {
+func NewTableConfig(db *sql.DB, writer *Writer) (*TableConfig, error) {
 	t := &TableConfig{
-		db: db,
+		db:     db,
+		writer: writer,
 	}
 	_, err := db.Exec(configSchema)
 	if err != nil {
@@ -58,8 +60,10 @@ func (t *TableConfig) ConfigGet(key string) (string, error) {
 }
 
 func (t *TableConfig) ConfigSet(key, value string) error {
-	_, err := t.set.Exec(key, value)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.set.Exec(key, value)
+		return err
+	})
 }
 
 func (t *TableConfig) ConfigSetPassword(password string) error {

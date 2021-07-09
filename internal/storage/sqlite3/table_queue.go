@@ -9,6 +9,7 @@ import (
 
 type TableQueue struct {
 	db                              *sql.DB
+	writer                          *Writer
 	queueSelectDestinations         *sql.Stmt
 	queueSelectIDsForDestination    *sql.Stmt
 	queueInsertDestinationForID     *sql.Stmt
@@ -49,9 +50,10 @@ const queueSelectIsMessagePendingSendStmt = `
 	SELECT COUNT(*) FROM queue WHERE mailbox = $1 AND id = $2
 `
 
-func NewTableQueue(db *sql.DB) (*TableQueue, error) {
+func NewTableQueue(db *sql.DB, writer *Writer) (*TableQueue, error) {
 	t := &TableQueue{
-		db: db,
+		db:     db,
+		writer: writer,
 	}
 	_, err := db.Exec(queueSchema)
 	if err != nil {
@@ -126,13 +128,17 @@ func (t *TableQueue) QueueMailIDsForDestination(destination string) ([]types.Que
 }
 
 func (t *TableQueue) QueueInsertDestinationForID(destination string, id int, from, rcpt string) error {
-	_, err := t.queueInsertDestinationForID.Exec(destination, "Outbox", id, from, rcpt)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.queueInsertDestinationForID.Exec(destination, "Outbox", id, from, rcpt)
+		return err
+	})
 }
 
 func (t *TableQueue) QueueDeleteDestinationForID(destination string, id int) error {
-	_, err := t.queueDeleteIDForDestination.Exec(destination, "Outbox", id)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.queueDeleteIDForDestination.Exec(destination, "Outbox", id)
+		return err
+	})
 }
 
 func (t *TableQueue) QueueSelectIsMessagePendingSend(mailbox string, id int) (bool, error) {

@@ -7,6 +7,7 @@ import (
 
 type TableMailboxes struct {
 	db                      *sql.DB
+	writer                  *Writer
 	selectMailboxes         *sql.Stmt
 	listMailboxes           *sql.Stmt
 	listMailboxesSubscribed *sql.Stmt
@@ -52,9 +53,10 @@ const mailboxesSubscribe = `
 	UPDATE mailboxes SET subscribed = $1 WHERE mailbox = $2
 `
 
-func NewTableMailboxes(db *sql.DB) (*TableMailboxes, error) {
+func NewTableMailboxes(db *sql.DB, writer *Writer) (*TableMailboxes, error) {
 	t := &TableMailboxes{
-		db: db,
+		db:     db,
+		writer: writer,
 	}
 	_, err := db.Exec(mailboxesSchema)
 	if err != nil {
@@ -127,18 +129,24 @@ func (t *TableMailboxes) MailboxSelect(mailbox string) (bool, error) {
 }
 
 func (t *TableMailboxes) MailboxCreate(name string) error {
-	_, err := t.createMailbox.Exec(name)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.createMailbox.Exec(name)
+		return err
+	})
 }
 
 func (t *TableMailboxes) MailboxRename(old, new string) error {
-	_, err := t.renameMailbox.Exec(old, new)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.renameMailbox.Exec(old, new)
+		return err
+	})
 }
 
 func (t *TableMailboxes) MailboxDelete(name string) error {
-	_, err := t.deleteMailbox.Exec(name)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.deleteMailbox.Exec(name)
+		return err
+	})
 }
 
 func (t *TableMailboxes) MailboxSubscribe(name string, subscribed bool) error {
@@ -146,6 +154,8 @@ func (t *TableMailboxes) MailboxSubscribe(name string, subscribed bool) error {
 	if !subscribed {
 		sn = 0
 	}
-	_, err := t.subscribeMailbox.Exec(sn, name)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.subscribeMailbox.Exec(sn, name)
+		return err
+	})
 }

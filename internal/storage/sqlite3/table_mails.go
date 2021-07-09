@@ -10,6 +10,7 @@ import (
 
 type TableMails struct {
 	db               *sql.DB
+	writer           *Writer
 	selectMails      *sql.Stmt
 	selectMail       *sql.Stmt
 	selectMailNextID *sql.Stmt
@@ -100,9 +101,10 @@ const expungeMailStmt = `
 	DELETE FROM mails WHERE mailbox = $1 AND deleted = 1
 `
 
-func NewTableMails(db *sql.DB) (*TableMails, error) {
+func NewTableMails(db *sql.DB, writer *Writer) (*TableMails, error) {
 	t := &TableMails{
-		db: db,
+		db:     db,
+		writer: writer,
 	}
 	_, err := db.Exec(mailsSchema)
 	if err != nil {
@@ -157,7 +159,9 @@ func NewTableMails(db *sql.DB) (*TableMails, error) {
 
 func (t *TableMails) MailCreate(mailbox string, data []byte) (int, error) {
 	var id int
-	err := t.createMail.QueryRow(mailbox, data, time.Now().Unix()).Scan(&id)
+	err := t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		return t.createMail.QueryRow(mailbox, data, time.Now().Unix()).Scan(&id)
+	})
 	return id, err
 }
 
@@ -209,18 +213,24 @@ func (t *TableMails) MailUnseen(mailbox string) (int, error) {
 }
 
 func (t *TableMails) MailUpdateFlags(mailbox string, id int, seen, answered, flagged, deleted bool) error {
-	_, err := t.updateMailFlags.Exec(seen, answered, flagged, deleted, mailbox, id)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.updateMailFlags.Exec(seen, answered, flagged, deleted, mailbox, id)
+		return err
+	})
 }
 
 func (t *TableMails) MailDelete(mailbox string, id int) error {
-	_, err := t.deleteMail.Exec(mailbox, id)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.deleteMail.Exec(mailbox, id)
+		return err
+	})
 }
 
 func (t *TableMails) MailExpunge(mailbox string) error {
-	_, err := t.expungeMail.Exec(mailbox)
-	return err
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.expungeMail.Exec(mailbox)
+		return err
+	})
 }
 
 func (t *TableMails) MailCount(mailbox string) (int, error) {
