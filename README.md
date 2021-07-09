@@ -40,10 +40,12 @@ yggmail -peer=tls://...
 yggmail -multicast -peer=tls://...
 ```
 
+Your mail address will be printed in the log at startup. You will also use this as your username when you log into SMTP/IMAP.
+
 Connect your mail client to Yggmail. In the above example:
 
-* SMTP is listening on `localhost` port 1025, password authentication, no SSL/TLS
-* IMAP is listening on `localhost` port 1143, password authentication, no SSL/TLS
+* SMTP is listening on `localhost` port 1025, username is your mail address, plain password authentication, no SSL/TLS
+* IMAP is listening on `localhost` port 1143, username is your mail address, plain password authentication, no SSL/TLS
 
 Then try sending a mail to another Yggmail user!
 
