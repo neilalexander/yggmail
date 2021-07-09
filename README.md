@@ -33,15 +33,17 @@ Create a mailbox and set your password. Your Yggmail database will automatically
 yggmail -password
 ```
 
-Start Yggmail, using the database in your working directory:
+Start Yggmail, using the database in your working directory, with either multicast enabled, an [Yggdrasil static peer](https://publicpeers.neilalexander.dev/) specified or both:
 ```
-yggmail -smtp=localhost:1025 -imap=localhost:1026
+yggmail -multicast
+yggmail -peer=tls://...
+yggmail -multicast -peer=tls://...
 ```
 
 Connect your mail client to Yggmail. In the above example:
 
 * SMTP is listening on `localhost` port 1025, password authentication, no SSL/TLS
-* IMAP is listening on `localhost` port 1026, password authentication, no SSL/TLS
+* IMAP is listening on `localhost` port 1143, password authentication, no SSL/TLS
 
 Then try sending a mail to another Yggmail user!
 
@@ -50,6 +52,7 @@ Then try sending a mail to another Yggmail user!
 The following command line switches are supported by the `yggmail` binary:
 
 * `-peer=tls://...` or `-peer=tcp://...` — connect to a specific Yggdrasil node, like one of the [Public Peers](https://publicpeers.neilalexander.dev/);
+* `-multicast` - enable multicast peer discovery for Yggdrasil nodes on your LAN
 * `-database=/path/to/yggmail.db` — use a specific database file;
 * `-smtp=listenaddr:port` — listen for SMTP on a specific address/port
 * `-imap=listenaddr:port` — listen for IMAP on a specific address/port;

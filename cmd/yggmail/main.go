@@ -27,15 +27,25 @@ import (
 
 var database = flag.String("database", "yggmail.db", "SQLite database file")
 var smtpaddr = flag.String("smtp", "localhost:1025", "SMTP listen address")
-var imapaddr = flag.String("imap", "localhost:1026", "IMAP listen address")
-var peeraddr = flag.String("peer", "", "Yggdrasil static peer")
+var imapaddr = flag.String("imap", "localhost:1143", "IMAP listen address")
+var peeraddr = flag.String("peer", "", "Connect to a specific Yggdrasil static peer")
+var multicast = flag.Bool("multicast", false, "Connect to Yggdrasil peers on your LAN")
 var password = flag.Bool("password", false, "Set a new IMAP/SMTP password")
 
 func main() {
-	flag.Parse()
-
 	rawlog := log.New(os.Stdout, "", 0)
 	log := log.New(rawlog.Writer(), "[  \033[32mYggmail\033[0m  ] ", 0)
+
+	flag.Parse()
+	if flag.NFlag() == 0 {
+		fmt.Println("Yggmail must be started with either an Yggdrasil peer")
+		fmt.Println("specified, multicast enabled, or both.")
+		fmt.Println()
+		fmt.Println("Available options:")
+		fmt.Println()
+		flag.PrintDefaults()
+		os.Exit(0)
+	}
 
 	storage, err := sqlite3.NewSQLite3StorageStorage(*database)
 	if err != nil {
@@ -95,6 +105,10 @@ func main() {
 
 		log.Println("Password for IMAP and SMTP has been updated!")
 		os.Exit(0)
+
+	case (multicast == nil || !*multicast) && (peeraddr == nil || *peeraddr == ""):
+		log.Printf("You must specify either -peer, -multicast or both!")
+		os.Exit(0)
 	}
 
 	cfg := &config.Config{
@@ -104,7 +118,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
-	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, *peeraddr)
+	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, *peeraddr, *multicast)
 	if err != nil {
 		panic(err)
 	}

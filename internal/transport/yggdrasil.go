@@ -19,7 +19,7 @@ type YggdrasilTransport struct {
 	Sessions *utp.Socket
 }
 
-func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.PublicKey, peer string) (*YggdrasilTransport, error) {
+func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.PublicKey, peer string, mcast bool) (*YggdrasilTransport, error) {
 	config := &config.NodeConfig{
 		PublicKey:  hex.EncodeToString(pk),
 		PrivateKey: hex.EncodeToString(sk),
@@ -33,6 +33,7 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		NodeInfo: map[string]interface{}{
 			"name": "Yggmail",
 		},
+		NodeInfoPrivacy: true,
 	}
 	if peer != "" {
 		config.Peers = append(config.Peers, peer)
@@ -45,12 +46,14 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 	if err := core.Start(config, glog); err != nil {
 		return nil, fmt.Errorf("core.Start: %w", err)
 	}
-	multicast := &multicast.Multicast{}
-	if err := multicast.Init(core, config, glog, nil); err != nil {
-		return nil, fmt.Errorf("multicast.Init: %w", err)
-	}
-	if err := multicast.Start(); err != nil {
-		return nil, fmt.Errorf("multicast.Start: %w", err)
+	if mcast {
+		multicast := &multicast.Multicast{}
+		if err := multicast.Init(core, config, glog, nil); err != nil {
+			return nil, fmt.Errorf("multicast.Init: %w", err)
+		}
+		if err := multicast.Start(); err != nil {
+			return nil, fmt.Errorf("multicast.Start: %w", err)
+		}
 	}
 	us, err := utp.NewSocketFromPacketConnNoClose(core)
 	if err != nil {
