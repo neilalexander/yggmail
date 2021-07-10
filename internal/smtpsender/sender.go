@@ -117,7 +117,6 @@ func (q *Queue) run() {
 		if err := func() error {
 			conn, err := q.queues.Transport.Dial(q.destination)
 			if err != nil {
-				q.queues.Log.Println("Failed to dial destination", q.destination, "due to error:", err)
 				return fmt.Errorf("q.queues.Transport.Dial: %w", err)
 			}
 			defer conn.Close()
@@ -165,7 +164,7 @@ func (q *Queue) run() {
 
 			return nil
 		}(); err != nil {
-			q.queues.Log.Println("Will retry sending to ", q.destination, "later due to error:", err)
+			q.queues.Log.Println("Will retry sending to", q.destination, "later due to error:", err)
 			// TODO: Send a mail to the inbox on the first instance?
 		} else {
 			q.queues.Log.Println("Sent mail from", ref.From, "to", q.destination)
