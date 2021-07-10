@@ -24,20 +24,32 @@ import (
 	"github.com/neilalexander/yggmail/internal/utils"
 )
 
-var database = flag.String("database", "yggmail.db", "SQLite database file")
-var smtpaddr = flag.String("smtp", "localhost:1025", "SMTP listen address")
-var imapaddr = flag.String("imap", "localhost:1143", "IMAP listen address")
-var peeraddr = flag.String("peer", "", "Connect to a specific Yggdrasil static peer")
-var multicast = flag.Bool("multicast", false, "Connect to Yggdrasil peers on your LAN")
-var password = flag.Bool("password", false, "Set a new IMAP/SMTP password")
+type peerAddrList []string
+
+func (i *peerAddrList) String() string {
+	return strings.Join(*i, ", ")
+}
+
+func (i *peerAddrList) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
 
 func main() {
 	rawlog := log.New(os.Stdout, "", 0)
 	log := log.New(rawlog.Writer(), "[  \033[32mYggmail\033[0m  ] ", 0)
 
+	var peerAddrs peerAddrList
+	database := flag.String("database", "yggmail.db", "SQLite database file")
+	smtpaddr := flag.String("smtp", "localhost:1025", "SMTP listen address")
+	imapaddr := flag.String("imap", "localhost:1143", "IMAP listen address")
+	multicast := flag.Bool("multicast", false, "Connect to Yggdrasil peers on your LAN")
+	password := flag.Bool("password", false, "Set a new IMAP/SMTP password")
+	flag.Var(&peerAddrs, "peer", "Connect to a specific Yggdrasil static peer (this option can be given more than once)")
 	flag.Parse()
+
 	if flag.NFlag() == 0 {
-		fmt.Println("Yggmail must be started with either an Yggdrasil peer")
+		fmt.Println("Yggmail must be started with either one or more Yggdrasil peers")
 		fmt.Println("specified, multicast enabled, or both.")
 		fmt.Println()
 		fmt.Println("Available options:")
@@ -108,7 +120,7 @@ func main() {
 		log.Println("Password for IMAP and SMTP has been updated!")
 		os.Exit(0)
 
-	case (multicast == nil || !*multicast) && (peeraddr == nil || *peeraddr == ""):
+	case (multicast == nil || !*multicast) && len(peerAddrs) == 0:
 		log.Printf("You must specify either -peer, -multicast or both!")
 		os.Exit(0)
 	}
@@ -120,7 +132,7 @@ func main() {
 	wg := &sync.WaitGroup{}
 	wg.Add(2)
 
-	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, *peeraddr, *multicast)
+	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, peerAddrs, *multicast)
 	if err != nil {
 		panic(err)
 	}

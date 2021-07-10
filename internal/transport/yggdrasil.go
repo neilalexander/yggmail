@@ -19,10 +19,11 @@ type YggdrasilTransport struct {
 	Sessions *utp.Socket
 }
 
-func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.PublicKey, peer string, mcast bool) (*YggdrasilTransport, error) {
+func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.PublicKey, peers []string, mcast bool) (*YggdrasilTransport, error) {
 	config := &config.NodeConfig{
 		PublicKey:  hex.EncodeToString(pk),
 		PrivateKey: hex.EncodeToString(sk),
+		Peers:      peers,
 		MulticastInterfaces: []config.MulticastInterfaceConfig{
 			{
 				Regex:  ".*",
@@ -34,9 +35,6 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 			"name": "Yggmail",
 		},
 		NodeInfoPrivacy: true,
-	}
-	if peer != "" {
-		config.Peers = append(config.Peers, peer)
 	}
 	glog := gologme.New(log.Writer(), "[ \033[33mYggdrasil\033[0m ] ", 0)
 	glog.EnableLevel("warn")
