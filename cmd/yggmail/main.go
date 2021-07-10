@@ -13,6 +13,7 @@ import (
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
+	"github.com/fatih/color"
 	"golang.org/x/term"
 
 	"github.com/neilalexander/yggmail/internal/config"
@@ -37,7 +38,8 @@ func (i *peerAddrList) Set(value string) error {
 
 func main() {
 	rawlog := log.New(os.Stdout, "", 0)
-	log := log.New(rawlog.Writer(), "[  \033[32mYggmail\033[0m  ] ", 0)
+	green := color.New(color.FgGreen).SprintfFunc()
+	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), 0)
 
 	var peerAddrs peerAddrList
 	database := flag.String("database", "yggmail.db", "SQLite database file")

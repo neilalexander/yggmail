@@ -8,6 +8,7 @@ import (
 	"net"
 
 	iwt "github.com/Arceliar/ironwood/types"
+	"github.com/fatih/color"
 	gologme "github.com/gologme/log"
 	"github.com/neilalexander/utp"
 	"github.com/yggdrasil-network/yggdrasil-go/src/config"
@@ -36,7 +37,8 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		},
 		NodeInfoPrivacy: true,
 	}
-	glog := gologme.New(log.Writer(), "[ \033[33mYggdrasil\033[0m ] ", 0)
+	yellow := color.New(color.FgYellow).SprintfFunc()
+	glog := gologme.New(log.Writer(), fmt.Sprintf("[ %s ] ", yellow("Yggdrasil")), 0)
 	glog.EnableLevel("warn")
 	glog.EnableLevel("error")
 	glog.EnableLevel("info")

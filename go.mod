@@ -9,6 +9,7 @@ require (
 	github.com/emersion/go-message v0.15.0
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.15.0
+	github.com/fatih/color v1.12.0
 	github.com/gologme/log v1.2.0
 	github.com/mattn/go-sqlite3 v1.14.7
 	github.com/neilalexander/utp v0.1.1-0.20210705212447-691f29ad692b
