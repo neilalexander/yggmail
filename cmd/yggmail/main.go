@@ -37,7 +37,7 @@ func (i *peerAddrList) Set(value string) error {
 }
 
 func main() {
-	rawlog := log.New(os.Stdout, "", 0)
+	rawlog := log.New(color.Output, "", 0)
 	green := color.New(color.FgGreen).SprintfFunc()
 	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), 0)
 
