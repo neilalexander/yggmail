@@ -165,7 +165,7 @@ func (q *Queue) run() {
 
 			return nil
 		}(); err != nil {
-			q.queues.Log.Println("Failed to send message:", err, "- will retry")
+			q.queues.Log.Println("Will retry sending to ", q.destination, "later due to error:", err)
 			// TODO: Send a mail to the inbox on the first instance?
 		} else {
 			q.queues.Log.Println("Sent mail from", ref.From, "to", q.destination)
