@@ -8,8 +8,9 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"strings"
-	"sync"
+	"syscall"
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -64,6 +65,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	defer storage.Close()
 	log.Printf("Using database file %q\n", *database)
 
 	skStr, err := storage.ConfigGet("private_key")
@@ -131,8 +133,6 @@ func main() {
 		PublicKey:  pk,
 		PrivateKey: sk,
 	}
-	wg := &sync.WaitGroup{}
-	wg.Add(2)
 
 	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, peerAddrs, *multicast)
 	if err != nil {
@@ -155,8 +155,6 @@ func main() {
 	log.Println("Listening for IMAP on:", *imapaddr)
 
 	go func() {
-		defer wg.Done()
-
 		localBackend := &smtpserver.Backend{
 			Log:     log,
 			Mode:    smtpserver.BackendModeInternal,
@@ -186,8 +184,6 @@ func main() {
 	}()
 
 	go func() {
-		defer wg.Done()
-
 		overlayBackend := &smtpserver.Backend{
 			Log:     log,
 			Mode:    smtpserver.BackendModeExternal,
@@ -208,5 +204,8 @@ func main() {
 		}
 	}()
 
-	wg.Wait()
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM)
+	<-sigs
+	log.Println("Shutting down")
 }

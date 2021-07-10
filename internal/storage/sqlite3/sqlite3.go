@@ -13,6 +13,7 @@ type SQLite3Storage struct {
 	*TableMailboxes
 	*TableMails
 	*TableQueue
+	db     *sql.DB
 	writer *Writer
 }
 
@@ -22,6 +23,7 @@ func NewSQLite3StorageStorage(filename string) (*SQLite3Storage, error) {
 		return nil, fmt.Errorf("sql.Open: %w", err)
 	}
 	s := &SQLite3Storage{
+		db: db,
 		writer: &Writer{
 			todo: make(chan writerTask),
 		},
@@ -43,6 +45,10 @@ func NewSQLite3StorageStorage(filename string) (*SQLite3Storage, error) {
 		return nil, fmt.Errorf("NewTableQueue: %w", err)
 	}
 	return s, nil
+}
+
+func (s *SQLite3Storage) Close() error {
+	return s.db.Close()
 }
 
 type Writer struct {
