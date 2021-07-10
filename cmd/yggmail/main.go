@@ -10,7 +10,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"syscall"
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -86,13 +85,13 @@ func main() {
 	switch {
 	case password != nil && *password:
 		log.Println("Please enter your new password:")
-		password1, err := term.ReadPassword(syscall.Stdin)
+		password1, err := term.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println()
 		log.Println("Please enter your new password again:")
-		password2, err := term.ReadPassword(syscall.Stdin)
+		password2, err := term.ReadPassword(int(os.Stdin.Fd()))
 		if err != nil {
 			panic(err)
 		}
