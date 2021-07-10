@@ -2,7 +2,6 @@ package imapserver
 
 import (
 	"log"
-	"os"
 
 	idle "github.com/emersion/go-imap-idle"
 	"github.com/emersion/go-imap/server"
@@ -22,7 +21,7 @@ func NewIMAPServer(backend *Backend, addr string, insecure bool) (*IMAPServer, *
 	notify := NewIMAPNotify(s.server, backend.Log)
 	s.server.Addr = addr
 	s.server.AllowInsecureAuth = insecure
-	s.server.Debug = os.Stdout
+	//s.server.Debug = os.Stdout
 	s.server.Enable(idle.NewExtension())
 	s.server.Enable(notify)
 	s.server.EnableAuth(sasl.Login, func(conn server.Conn) sasl.Server {
