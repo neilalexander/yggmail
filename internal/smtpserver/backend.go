@@ -7,6 +7,7 @@ import (
 
 	"github.com/emersion/go-smtp"
 	"github.com/neilalexander/yggmail/internal/config"
+	"github.com/neilalexander/yggmail/internal/imapserver"
 	"github.com/neilalexander/yggmail/internal/smtpsender"
 	"github.com/neilalexander/yggmail/internal/storage"
 	"github.com/neilalexander/yggmail/internal/utils"
@@ -25,6 +26,7 @@ type Backend struct {
 	Config  *config.Config
 	Queues  *smtpsender.Queues
 	Storage storage.Storage
+	Notify  *imapserver.IMAPNotify
 }
 
 func (b *Backend) Login(state *smtp.ConnectionState, username, password string) (smtp.Session, error) {

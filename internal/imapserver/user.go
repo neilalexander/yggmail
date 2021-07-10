@@ -5,12 +5,14 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend"
 )
 
 type User struct {
 	backend  *Backend
 	username string
+	conn     *imap.ConnInfo
 }
 
 func (u *User) Username() string {

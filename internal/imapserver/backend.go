@@ -16,6 +16,7 @@ type Backend struct {
 	Config  *config.Config
 	Log     *log.Logger
 	Storage storage.Storage
+	Server  *IMAPServer
 }
 
 func (b *Backend) Login(conn *imap.ConnInfo, username, password string) (backend.User, error) {
@@ -38,6 +39,26 @@ func (b *Backend) Login(conn *imap.ConnInfo, username, password string) (backend
 	user := &User{
 		backend:  b,
 		username: username,
+		conn:     conn,
 	}
 	return user, nil
 }
+
+/*
+func (b *Backend) NotifyNew(id int) error {
+	b.Server.server.ForEachConn(func(conn server.Conn) {
+		notify := false
+		for _, cap := range conn.Capabilities() {
+			if cap == "NOTIFY" {
+				notify = true
+			}
+		}
+		if !notify {
+			return
+		}
+		conn.WaitReady()
+		conn.WriteResp()
+	})
+	return nil
+}
+*/

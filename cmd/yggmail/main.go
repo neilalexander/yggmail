@@ -10,8 +10,8 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"syscall"
 
-	"github.com/emersion/go-imap/server"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"golang.org/x/term"
@@ -86,13 +86,13 @@ func main() {
 	switch {
 	case password != nil && *password:
 		log.Println("Please enter your new password:")
-		password1, err := term.ReadPassword(0)
+		password1, err := term.ReadPassword(syscall.Stdin)
 		if err != nil {
 			panic(err)
 		}
 		fmt.Println()
 		log.Println("Please enter your new password again:")
-		password2, err := term.ReadPassword(0)
+		password2, err := term.ReadPassword(syscall.Stdin)
 		if err != nil {
 			panic(err)
 		}
@@ -127,31 +127,19 @@ func main() {
 	}
 
 	queues := smtpsender.NewQueues(cfg, log, transport, storage)
+	var notify *imapserver.IMAPNotify
 
-	go func() {
-		defer wg.Done()
+	imapBackend := &imapserver.Backend{
+		Log:     log,
+		Config:  cfg,
+		Storage: storage,
+	}
 
-		imapBackend := &imapserver.Backend{
-			Log:     log,
-			Config:  cfg,
-			Storage: storage,
-		}
-
-		imapServer := server.New(imapBackend)
-		imapServer.Addr = *imapaddr
-		imapServer.AllowInsecureAuth = true
-		imapServer.EnableAuth(sasl.Login, func(conn server.Conn) sasl.Server {
-			return sasl.NewLoginServer(func(username, password string) error {
-				_, err := imapBackend.Login(nil, username, password)
-				return err
-			})
-		})
-
-		log.Println("Listening for IMAP on:", imapServer.Addr)
-		if err := imapServer.ListenAndServe(); err != nil {
-			log.Fatal(err)
-		}
-	}()
+	_, notify, err = imapserver.NewIMAPServer(imapBackend, *imapaddr, true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("Listening for IMAP on:", *imapaddr)
 
 	go func() {
 		defer wg.Done()
@@ -162,6 +150,7 @@ func main() {
 			Config:  cfg,
 			Storage: storage,
 			Queues:  queues,
+			Notify:  notify,
 		}
 
 		localServer := smtp.NewServer(localBackend)
@@ -192,6 +181,7 @@ func main() {
 			Config:  cfg,
 			Storage: storage,
 			Queues:  queues,
+			Notify:  notify,
 		}
 
 		overlayServer := smtp.NewServer(overlayBackend)
