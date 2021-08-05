@@ -72,7 +72,13 @@ func (ym *Yggmail) CloseDatabase() {
 
 func (ym *Yggmail) StartLogError(smtpaddr string, imapaddr string, multicast bool, peers string) {
 	if err := ym.Start(smtpaddr, imapaddr, multicast, peers); err != nil {
-		ym.Logger.Log(fmt.Sprint(err))
+		ym.sendError("Error: %v", err)
+	}
+}
+
+func (ym *Yggmail) sendError(format string, a ...interface{}) {
+	if ym.Logger != nil {
+		ym.Logger.Log(fmt.Sprintf(format, a...))
 	}
 }
 
@@ -118,13 +124,17 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 	for _, name := range []string{"INBOX", "Outbox"} {
 		if err := ym.storage.MailboxCreate(name); err != nil {
 			return &err
+		} else {
+			log.Printf("Mailbox created: %s", name)
 		}
 	}
 
 	if !multicast && len(peerAddrs) == 0 {
-		//log.Printf()
+		log.Printf("You must specify either -peer, -multicast or both!")
 		err := errors.New("You must specify either -peer, -multicast or both!")
 		return &err
+	} else {
+		log.Printf("multicast/peer Address check successfully passed")
 	}
 
 	cfg := &config.Config{
@@ -136,6 +146,7 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 	if err != nil {
 		return &err
 	}
+	log.Printf("YggdrasilTransport created...")
 
 	queues := smtpsender.NewQueues(cfg, log, transport, ym.storage)
 	var notify *imapserver.IMAPNotify
@@ -207,7 +218,7 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 }
 
 func (ym *Yggmail) Stop() {
-	log.Println("Shutting down")
+	log.Println("Shutting yggmail down")
 	if ym.localSmtpServer != nil {
 		ym.localSmtpServer.Close()
 		ym.localSmtpServer = nil
