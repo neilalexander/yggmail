@@ -3,9 +3,9 @@ package yggmail
 import (
 	"crypto/ed25519"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 
 	"github.com/emersion/go-sasl"
@@ -23,32 +23,44 @@ import (
 
 type peerAddrList []string
 
+type Logger interface {
+	Log(msg string)
+}
+
 type Yggmail struct {
 	storage           *sqlite3.SQLite3Storage
 	imapServer        *imapserver.IMAPServer
 	localSmtpServer   *smtp.Server
 	overlaySmtpServer *smtp.Server
 	DatabaseName      string
+	Logger            Logger
 }
 
-func (ym *Yggmail) OpenDatabase() {
+func (ym *Yggmail) OpenDatabase() *error {
 	storage, err := sqlite3.NewSQLite3StorageStorage(ym.DatabaseName)
 	if err != nil {
-		panic(err)
+		return &err
 	}
 	ym.storage = storage
 	log.Printf("Using database file %q\n", ym.DatabaseName)
+	return nil
 }
 
-func (ym *Yggmail) CreatePassword(password string) {
+func (ym *Yggmail) CreatePasswordLogError(password string) {
+	if err := ym.CreatePassword(password); err != nil {
+		ym.Logger.Log(fmt.Sprint(err))
+	}
+}
+
+func (ym *Yggmail) CreatePassword(password string) *error {
 	if ym.storage == nil {
 		ym.OpenDatabase()
 	}
 	if err := ym.storage.ConfigSetPassword(strings.TrimSpace(string(password))); err != nil {
-		log.Println("Failed to set password:", err)
-		ym.CloseDatabase()
-		os.Exit(1)
+		log.Printf("Failed to set password:", err)
+		return &err
 	}
+	return nil
 }
 
 func (ym *Yggmail) CloseDatabase() {
@@ -58,8 +70,14 @@ func (ym *Yggmail) CloseDatabase() {
 	}
 }
 
+func (ym *Yggmail) StartLogError(smtpaddr string, imapaddr string, multicast bool, peers string) {
+	if err := ym.Start(smtpaddr, imapaddr, multicast, peers); err != nil {
+		ym.Logger.Log(fmt.Sprint(err))
+	}
+}
+
 // Start starts imap and smtp server, peers is be a comma separated sting
-func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers string) {
+func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers string) *error {
 	rawlog := log.New(color.Output, "", 0)
 	green := color.New(color.FgGreen).SprintfFunc()
 	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), 0)
@@ -75,22 +93,22 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 
 	skStr, err := ym.storage.ConfigGet("private_key")
 	if err != nil {
-		panic(err)
+		return &err
 	}
 
 	sk := make(ed25519.PrivateKey, ed25519.PrivateKeySize)
 	if skStr == "" {
 		if _, sk, err = ed25519.GenerateKey(nil); err != nil {
-			panic(err)
+			return &err
 		}
 		if err := ym.storage.ConfigSet("private_key", hex.EncodeToString(sk)); err != nil {
-			panic(err)
+			return &err
 		}
 		log.Printf("Generated new server identity")
 	} else {
 		skBytes, err := hex.DecodeString(skStr)
 		if err != nil {
-			panic(err)
+			return &err
 		}
 		copy(sk, skBytes)
 	}
@@ -99,13 +117,14 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 
 	for _, name := range []string{"INBOX", "Outbox"} {
 		if err := ym.storage.MailboxCreate(name); err != nil {
-			panic(err)
+			return &err
 		}
 	}
 
 	if !multicast && len(peerAddrs) == 0 {
-		log.Printf("You must specify either -peer, -multicast or both!")
-		os.Exit(0)
+		//log.Printf()
+		err := errors.New("You must specify either -peer, -multicast or both!")
+		return &err
 	}
 
 	cfg := &config.Config{
@@ -115,7 +134,7 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 
 	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, peerAddrs, multicast)
 	if err != nil {
-		panic(err)
+		return &err
 	}
 
 	queues := smtpsender.NewQueues(cfg, log, transport, ym.storage)
@@ -130,6 +149,7 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 	ym.imapServer, notify, err = imapserver.NewIMAPServer(imapBackend, imapaddr, true)
 	if err != nil {
 		log.Fatal(err)
+		return &err
 	}
 	log.Println("Listening for IMAP on:", imapaddr)
 	localBackend := &smtpserver.Backend{
@@ -183,6 +203,7 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 		}
 	}()
 
+	return nil
 }
 
 func (ym *Yggmail) Stop() {
