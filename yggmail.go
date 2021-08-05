@@ -59,7 +59,7 @@ func (ym *Yggmail) CloseDatabase() {
 	}
 }
 
-func (ym *Yggmail) Start(smtpaddr *string, imapaddr *string, multicast bool, peers []string) {
+func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers []string) {
 	rawlog := log.New(color.Output, "", 0)
 	green := color.New(color.FgGreen).SprintfFunc()
 	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), 0)
@@ -127,11 +127,11 @@ func (ym *Yggmail) Start(smtpaddr *string, imapaddr *string, multicast bool, pee
 		Storage: ym.storage,
 	}
 
-	ym.imapServer, notify, err = imapserver.NewIMAPServer(imapBackend, *imapaddr, true)
+	ym.imapServer, notify, err = imapserver.NewIMAPServer(imapBackend, imapaddr, true)
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("Listening for IMAP on:", *imapaddr)
+	log.Println("Listening for IMAP on:", imapaddr)
 	localBackend := &smtpserver.Backend{
 		Log:     log,
 		Mode:    smtpserver.BackendModeInternal,
@@ -142,7 +142,7 @@ func (ym *Yggmail) Start(smtpaddr *string, imapaddr *string, multicast bool, pee
 	}
 
 	ym.localSmtpServer = smtp.NewServer(localBackend)
-	ym.localSmtpServer.Addr = *smtpaddr
+	ym.localSmtpServer.Addr = smtpaddr
 	ym.localSmtpServer.Domain = hex.EncodeToString(pk)
 	ym.localSmtpServer.MaxMessageBytes = 1024 * 1024
 	ym.localSmtpServer.MaxRecipients = 50
