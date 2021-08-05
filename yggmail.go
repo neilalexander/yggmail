@@ -28,17 +28,16 @@ type Yggmail struct {
 	imapServer        *imapserver.IMAPServer
 	localSmtpServer   *smtp.Server
 	overlaySmtpServer *smtp.Server
-	DatabaseName      *string
+	DatabaseName      string
 }
 
 func (ym *Yggmail) OpenDatabase() {
-	var database string = "ygg.db"
-	storage, err := sqlite3.NewSQLite3StorageStorage(database)
+	storage, err := sqlite3.NewSQLite3StorageStorage(ym.DatabaseName)
 	if err != nil {
 		panic(err)
 	}
 	ym.storage = storage
-	log.Printf("Using database file %q\n", database)
+	log.Printf("Using database file %q\n", ym.DatabaseName)
 }
 
 func (ym *Yggmail) CreatePassword(password string) {
