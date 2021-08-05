@@ -59,12 +59,13 @@ func (ym *Yggmail) CloseDatabase() {
 	}
 }
 
-func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers []string) {
+// Start starts imap and smtp server, peers is be a comma separated sting
+func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers string) {
 	rawlog := log.New(color.Output, "", 0)
 	green := color.New(color.FgGreen).SprintfFunc()
 	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), 0)
 
-	var peerAddrs peerAddrList = peers
+	var peerAddrs peerAddrList = strings.Split(peers, ",")
 	/*database := flag.String("database", "yggmail.db", "SQLite database file")
 	smtpaddr := flag.String("smtp", "localhost:1025", "SMTP listen address")
 	imapaddr := flag.String("imap", "localhost:1143", "IMAP listen address")
