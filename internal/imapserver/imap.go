@@ -45,3 +45,7 @@ func NewIMAPServer(backend *Backend, addr string, insecure bool) (*IMAPServer, *
 	}()
 	return s, notify, nil
 }
+
+func (is *IMAPServer) Stop() {
+	is.server.Close()
+}
