@@ -34,6 +34,7 @@ type Yggmail struct {
 	overlaySmtpServer *smtp.Server
 	DatabaseName      string
 	Logger            Logger
+	AccountName       string
 }
 
 func (ym *Yggmail) OpenDatabase() *error {
@@ -120,6 +121,7 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 	}
 	pk := sk.Public().(ed25519.PublicKey)
 	log.Printf("Mail address: %s@%s\n", hex.EncodeToString(pk), utils.Domain)
+	ym.AccountName = hex.EncodeToString(pk)
 
 	for _, name := range []string{"INBOX", "Outbox"} {
 		if err := ym.storage.MailboxCreate(name); err != nil {
