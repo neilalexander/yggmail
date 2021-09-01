@@ -23,11 +23,6 @@ import (
 
 type peerAddrList []string
 
-type Logger interface {
-	LogMessage(msg string)
-	LogError(errorId int, msg string)
-}
-
 const ERROR_OPEN_DB int = 1
 const ERROR_PASSWORD int = 2
 const ERROR_START int = 3
@@ -94,9 +89,13 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 
 // Start starts imap and smtp server, peers is be a comma separated sting
 func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers string) *error {
-	rawlog := log.New(color.Output, "", 0)
-	green := color.New(color.FgGreen).SprintfFunc()
-	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), 0)
+
+	logWriter := LogWriter{
+		Output: log.New(color.Output, "", 0).Writer(),
+		Logger: ym.Logger,
+	}
+
+	yggmailLog := log.New(&logWriter, "[  Yggmail  ] ", 0)
 	var peerAddrs peerAddrList = strings.Split(peers, ",")
 
 	skStr, err := ym.storage.ConfigGet("private_key")
@@ -112,7 +111,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		if err := ym.storage.ConfigSet("private_key", hex.EncodeToString(sk)); err != nil {
 			return &err
 		}
-		log.Printf("Generated new server identity")
+		yggmailLog.Printf("Generated new server identity")
 	} else {
 		skBytes, err := hex.DecodeString(skStr)
 		if err != nil {
@@ -128,16 +127,16 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		if err := ym.storage.MailboxCreate(name); err != nil {
 			return &err
 		} else {
-			ym.sendLog("Mailbox created: %s", name)
+			yggmailLog.Printf("Mailbox created: %s", name)
 		}
 	}
 
 	if !multicast && len(peerAddrs) == 0 {
-		log.Printf("You must specify either -peer, -multicast or both!")
+		yggmailLog.Printf("You must specify either -peer, -multicast or both!")
 		err := errors.New("You must specify either -peer, -multicast or both!")
 		return &err
 	} else {
-		log.Printf("multicast/peer Address check successfully passed")
+		yggmailLog.Printf("multicast/peer Address check successfully passed")
 	}
 
 	cfg := &config.Config{
@@ -145,29 +144,28 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		PrivateKey: sk,
 	}
 
-	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, peerAddrs, multicast)
+	yggdrasilLog := log.New(&logWriter, "", 0)
+	transport, err := transport.NewYggdrasilTransport(yggdrasilLog, sk, pk, peerAddrs, multicast)
 	if err != nil {
 		return &err
 	}
-	ym.sendLog("YggdrasilTransport created...")
 
-	queues := smtpsender.NewQueues(cfg, log, transport, ym.storage)
+	queues := smtpsender.NewQueues(cfg, yggmailLog, transport, ym.storage)
 	var notify *imapserver.IMAPNotify
 
 	imapBackend := &imapserver.Backend{
-		Log:     log,
+		Log:     yggmailLog,
 		Config:  cfg,
 		Storage: ym.storage,
 	}
 
 	ym.imapServer, notify, err = imapserver.NewIMAPServer(imapBackend, imapaddr, true)
 	if err != nil {
-		//log.Fatal(err)
 		return &err
 	}
-	ym.sendLog("Listening for IMAP on: %s", imapaddr)
+	yggmailLog.Printf("Listening for IMAP on: %s", imapaddr)
 	localBackend := &smtpserver.Backend{
-		Log:     log,
+		Log:     yggmailLog,
 		Mode:    smtpserver.BackendModeInternal,
 		Config:  cfg,
 		Storage: ym.storage,
@@ -183,7 +181,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 	ym.localSmtpServer.AllowInsecureAuth = true
 
 	overlayBackend := &smtpserver.Backend{
-		Log:     log,
+		Log:     yggmailLog,
 		Mode:    smtpserver.BackendModeExternal,
 		Config:  cfg,
 		Storage: ym.storage,
@@ -208,14 +206,12 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 
 		ym.sendLog("Listening for SMTP on: %s", ym.localSmtpServer.Addr)
 		if err := ym.localSmtpServer.ListenAndServe(); err != nil {
-			//log.Fatal(err)
 			ym.sendError(ERROR_SMTP, "SMTP error %s", err)
 		}
 	}()
 
 	go func() {
 		if err := ym.overlaySmtpServer.Serve(transport.Listener()); err != nil {
-			//log.Fatal(err)
 			ym.sendError(ERROR_OVERLAY_SMTP, "OVERLAY SMTP error %s", err)
 		}
 	}()
@@ -242,15 +238,13 @@ func (ym *Yggmail) Stop() {
 }
 
 func (ym *Yggmail) sendError(errorId int, format string, a ...interface{}) {
-	//log.Printf(fmt.Sprintf("err %d: %s", errorId, fmt.Sprintf(format, a...)))
 	if ym.Logger != nil {
-		ym.Logger.LogError(errorId, fmt.Sprintf(format, a...))
+		ym.Logger.LogError(errorId, fmt.Sprintf("[  Yggmail  ] %s", fmt.Sprintf(format, a...)))
 	}
 }
 
 func (ym *Yggmail) sendLog(format string, a ...interface{}) {
-	//log.Printf(fmt.Sprintf(format, a...))
 	if ym.Logger != nil {
-		ym.Logger.LogMessage(fmt.Sprintf(format, a...))
+		ym.Logger.LogMessage(fmt.Sprintf("[  Yggmail  ] %s", fmt.Sprintf(format, a...)))
 	}
 }
