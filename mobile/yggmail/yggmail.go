@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"sync"
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -23,31 +24,79 @@ import (
 
 type peerAddrList []string
 
-const ERROR_OPEN_DB int = 1
-const ERROR_PASSWORD int = 2
-const ERROR_START int = 3
-const ERROR_SMTP int = 4
-const ERROR_OVERLAY_SMTP int = 5
-const ERROR_IMAP int = 6
-const ERROR_AUTH int = 7
+// constants defining error types
+const (
+	ERROR_OPEN_DB = iota
+	ERROR_PASSWORD
+	ERROR_START
+	ERROR_SMTP
+	ERROR_OVERLAY_SMTP
+	ERROR_IMAP
+	ERROR_AUTH
+)
+
+// constants defining Yggmail.state
+const (
+	Running = iota
+	ShuttingDown
+	Stopped
+	Error
+)
 
 type Yggmail struct {
 	storage           *sqlite3.SQLite3Storage
 	imapServer        *imapserver.IMAPServer
 	localSmtpServer   *smtp.Server
 	overlaySmtpServer *smtp.Server
+	transport         *transport.YggdrasilTransport
 	DatabaseName      string
 	Logger            Logger
 	AccountName       string
+	state             int
+	locker            sync.Mutex
 }
 
-func (ym *Yggmail) OpenDatabase() {
-	if err := ym.openDatabase(); err != nil {
-		ym.sendError(ERROR_OPEN_DB, "%s", *err)
+func (ym *Yggmail) GetState() int {
+	ym.locker.Lock()
+	defer ym.locker.Unlock()
+	return ym.state
+}
+
+func (ym *Yggmail) setState(stateConst int) {
+	if stateConst == Running || stateConst == ShuttingDown || stateConst == Stopped || stateConst == Error {
+		ym.locker.Lock()
+		ym.state = stateConst
+		ym.locker.Unlock()
+	} else {
+		fmt.Printf("invalid state value %d", stateConst)
 	}
 }
 
+func (ym *Yggmail) CreatePassword(password string) {
+	if err := ym.createPassword(password); err != nil {
+		ym.handleError(ERROR_PASSWORD, fmt.Sprint(err))
+	}
+}
+
+func (ym *Yggmail) createPassword(password string) *error {
+	if ym.storage == nil {
+		if err := ym.openDatabase(); err != nil {
+			return err
+		}
+	}
+
+	if err := ym.storage.ConfigSetPassword(strings.TrimSpace(string(password))); err != nil {
+		log.Printf("Failed to set password: %s", err)
+		return &err
+	}
+	return nil
+}
+
 func (ym *Yggmail) openDatabase() *error {
+	if ym.storage != nil {
+		return nil
+	}
+
 	storage, err := sqlite3.NewSQLite3StorageStorage(ym.DatabaseName)
 	if err != nil {
 		return &err
@@ -57,24 +106,7 @@ func (ym *Yggmail) openDatabase() *error {
 	return nil
 }
 
-func (ym *Yggmail) CreatePassword(password string) {
-	if err := ym.createPassword(password); err != nil {
-		ym.sendError(ERROR_PASSWORD, fmt.Sprint(err))
-	}
-}
-
-func (ym *Yggmail) createPassword(password string) *error {
-	if ym.storage == nil {
-		ym.OpenDatabase()
-	}
-	if err := ym.storage.ConfigSetPassword(strings.TrimSpace(string(password))); err != nil {
-		log.Printf("Failed to set password: %s", err)
-		return &err
-	}
-	return nil
-}
-
-func (ym *Yggmail) CloseDatabase() {
+func (ym *Yggmail) closeDatabase() {
 	if ym.storage != nil {
 		ym.storage.Close()
 		ym.storage = nil
@@ -82,8 +114,16 @@ func (ym *Yggmail) CloseDatabase() {
 }
 
 func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers string) {
+	if ym.storage == nil {
+		if err := ym.openDatabase(); err != nil {
+			ym.handleError(ERROR_START, "%s", *err)
+			return
+		}
+	}
+
+	ym.setState(Running)
 	if err := ym.start(smtpaddr, imapaddr, multicast, peers); err != nil {
-		ym.sendError(ERROR_START, "%s", *err)
+		ym.handleError(ERROR_START, "%s", *err)
 	}
 }
 
@@ -149,9 +189,9 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 	if err != nil {
 		return &err
 	}
+	ym.transport = transport
 
 	queues := smtpsender.NewQueues(cfg, yggmailLog, transport, ym.storage)
-	var notify *imapserver.IMAPNotify
 
 	imapBackend := &imapserver.Backend{
 		Log:     yggmailLog,
@@ -207,20 +247,20 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		ym.localSmtpServer.EnableAuth(sasl.Login, func(conn *smtp.Conn) sasl.Server {
 			return sasl.NewLoginServer(func(username, password string) error {
 				_, err := localBackend.Login(nil, username, password)
-				ym.sendError(ERROR_AUTH, "SMTP login error: %s", err)
+				ym.handleError(ERROR_AUTH, "SMTP login error: %s", err)
 				return err
 			})
 		})
 
 		ym.sendLog("Listening for SMTP on: %s", ym.localSmtpServer.Addr)
 		if err := ym.localSmtpServer.ListenAndServe(); err != nil {
-			ym.sendError(ERROR_SMTP, "SMTP error %s", err)
+			ym.handleError(ERROR_SMTP, "SMTP error %s", err)
 		}
 	}()
 
 	go func() {
 		if err := ym.overlaySmtpServer.Serve(transport.Listener()); err != nil {
-			ym.sendError(ERROR_OVERLAY_SMTP, "OVERLAY SMTP error %s", err)
+			ym.handleError(ERROR_OVERLAY_SMTP, "OVERLAY SMTP error %s", err)
 		}
 	}()
 
@@ -228,7 +268,13 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 }
 
 func (ym *Yggmail) Stop() {
+	if ym.GetState() == ShuttingDown {
+		return
+	}
+
+	ym.setState(ShuttingDown)
 	ym.sendLog("Shutting down yggmail...")
+
 	if ym.localSmtpServer != nil {
 		ym.localSmtpServer.Close()
 		ym.localSmtpServer = nil
@@ -242,13 +288,26 @@ func (ym *Yggmail) Stop() {
 		ym.imapServer = nil
 	}
 
-	ym.CloseDatabase()
+	if ym.transport != nil {
+		ym.transport.Stop()
+		ym.transport = nil
+	}
+	ym.closeDatabase()
+
+	ym.setState(Stopped)
 }
 
-func (ym *Yggmail) sendError(errorId int, format string, a ...interface{}) {
+func (ym *Yggmail) handleError(errorId int, format string, a ...interface{}) {
+	if ym.GetState() == ShuttingDown {
+		// ignore errors when shutting down
+		return
+	}
+
+	ym.setState(Error)
 	if ym.Logger != nil {
 		ym.Logger.LogError(errorId, fmt.Sprintf("[  Yggmail  ] %s", fmt.Sprintf(format, a...)))
 	}
+	ym.Stop()
 }
 
 func (ym *Yggmail) sendLog(format string, a ...interface{}) {
