@@ -78,7 +78,7 @@ func (ym *Yggmail) CreatePassword(password string) {
 	}
 }
 
-func (ym *Yggmail) createPassword(password string) *error {
+func (ym *Yggmail) createPassword(password string) error {
 	if ym.storage == nil {
 		if err := ym.openDatabase(); err != nil {
 			return err
@@ -87,19 +87,19 @@ func (ym *Yggmail) createPassword(password string) *error {
 
 	if err := ym.storage.ConfigSetPassword(strings.TrimSpace(string(password))); err != nil {
 		log.Printf("Failed to set password: %s", err)
-		return &err
+		return err
 	}
 	return nil
 }
 
-func (ym *Yggmail) openDatabase() *error {
+func (ym *Yggmail) openDatabase() error {
 	if ym.storage != nil {
 		return nil
 	}
 
 	storage, err := sqlite3.NewSQLite3StorageStorage(ym.DatabaseName)
 	if err != nil {
-		return &err
+		return err
 	}
 	ym.storage = storage
 	ym.sendLog("Using database file %s ", ym.DatabaseName)
@@ -116,19 +116,19 @@ func (ym *Yggmail) closeDatabase() {
 func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers string) {
 	if ym.storage == nil {
 		if err := ym.openDatabase(); err != nil {
-			ym.handleError(ERROR_START, "%s", *err)
+			ym.handleError(ERROR_START, "%s", err)
 			return
 		}
 	}
 
 	ym.setState(Running)
 	if err := ym.start(smtpaddr, imapaddr, multicast, peers); err != nil {
-		ym.handleError(ERROR_START, "%s", *err)
+		ym.handleError(ERROR_START, "%s", err)
 	}
 }
 
 // Start starts imap and smtp server, peers is be a comma separated sting
-func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers string) *error {
+func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers string) error {
 
 	logWriter := LogWriter{
 		Output: log.New(color.Output, "", 0).Writer(),
@@ -140,22 +140,22 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 
 	skStr, err := ym.storage.ConfigGet("private_key")
 	if err != nil {
-		return &err
+		return err
 	}
 
 	sk := make(ed25519.PrivateKey, ed25519.PrivateKeySize)
 	if skStr == "" {
 		if _, sk, err = ed25519.GenerateKey(nil); err != nil {
-			return &err
+			return err
 		}
 		if err := ym.storage.ConfigSet("private_key", hex.EncodeToString(sk)); err != nil {
-			return &err
+			return err
 		}
 		yggmailLog.Printf("Generated new server identity")
 	} else {
 		skBytes, err := hex.DecodeString(skStr)
 		if err != nil {
-			return &err
+			return err
 		}
 		copy(sk, skBytes)
 	}
@@ -165,7 +165,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 
 	for _, name := range []string{"INBOX", "Outbox"} {
 		if err := ym.storage.MailboxCreate(name); err != nil {
-			return &err
+			return err
 		} else {
 			yggmailLog.Printf("Mailbox created: %s", name)
 		}
@@ -174,7 +174,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 	if !multicast && len(peerAddrs) == 0 {
 		yggmailLog.Printf("You must specify either -peer, -multicast or both!")
 		err := errors.New("You must specify either -peer, -multicast or both!")
-		return &err
+		return err
 	} else {
 		yggmailLog.Printf("multicast/peer Address check successfully passed")
 	}
@@ -187,7 +187,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 	yggdrasilLog := log.New(&logWriter, "", 0)
 	transport, err := transport.NewYggdrasilTransport(yggdrasilLog, sk, pk, peerAddrs, multicast)
 	if err != nil {
-		return &err
+		return err
 	}
 	ym.transport = transport
 
@@ -201,7 +201,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 
 	imapServer, notify, err := imapserver.NewIMAPServer(imapBackend, imapaddr, true)
 	if err != nil {
-		return &err
+		return err
 	}
 	ym.imapServer = imapServer
 
