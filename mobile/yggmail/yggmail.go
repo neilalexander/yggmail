@@ -65,8 +65,8 @@ func (ym *Yggmail) GetState() int {
 func (ym *Yggmail) setState(stateConst int) {
 	if stateConst == Running || stateConst == ShuttingDown || stateConst == Stopped || stateConst == Error {
 		ym.locker.Lock()
+		defer ym.locker.Unlock()
 		ym.state = stateConst
-		ym.locker.Unlock()
 	} else {
 		fmt.Printf("invalid state value %d", stateConst)
 	}
