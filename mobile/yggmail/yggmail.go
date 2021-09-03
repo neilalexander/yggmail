@@ -159,10 +159,18 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		Storage: ym.storage,
 	}
 
-	ym.imapServer, notify, err = imapserver.NewIMAPServer(imapBackend, imapaddr, true)
+	imapServer, notify, err := imapserver.NewIMAPServer(imapBackend, imapaddr, true)
 	if err != nil {
 		return &err
 	}
+	ym.imapServer = imapServer
+
+	go func() {
+		if err := ym.imapServer.Start(); err != nil {
+			ym.handleError(ERROR_IMAP, "IMAP error: %s", err)
+		}
+	}()
+
 	yggmailLog.Printf("Listening for IMAP on: %s", imapaddr)
 	localBackend := &smtpserver.Backend{
 		Log:     yggmailLog,

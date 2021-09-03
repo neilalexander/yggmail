@@ -156,10 +156,16 @@ func main() {
 		Storage: storage,
 	}
 
-	_, notify, err = imapserver.NewIMAPServer(imapBackend, *imapaddr, true)
+	imapServer, notify, err := imapserver.NewIMAPServer(imapBackend, *imapaddr, true)
 	if err != nil {
 		log.Fatal(err)
 	}
+	go func() {
+		if err := imapServer.Start(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+
 	log.Println("Listening for IMAP on:", *imapaddr)
 
 	go func() {
