@@ -46,10 +46,11 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		NodeInfoPrivacy: true,
 	}
 	yellow := color.New(color.FgYellow).SprintfFunc()
-	glog := gologme.New(log.Writer(), fmt.Sprintf("[ %s ] ", yellow("Yggdrasil")), 0)
+	glog := gologme.New(log.Writer(), fmt.Sprintf("[ %s ] ", yellow("Yggdrasil")), gologme.LstdFlags | gologme.Lmsgprefix)
 	glog.EnableLevel("warn")
 	glog.EnableLevel("error")
 	glog.EnableLevel("info")
+
 	core := &core.Core{}
 	if err := core.Start(config, glog); err != nil {
 		return nil, fmt.Errorf("core.Start: %w", err)
