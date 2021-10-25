@@ -50,8 +50,9 @@ type Yggmail struct {
 	overlaySmtpServer *smtp.Server
 	transport         *transport.YggdrasilTransport
 	DatabaseName      string
-	Logger            Logger
 	AccountName       string
+	Logger            Logger
+	internalLog       *log.Logger
 	state             int
 	locker            sync.Mutex
 }
@@ -86,10 +87,18 @@ func (ym *Yggmail) createPassword(password string) error {
 	}
 
 	if err := ym.storage.ConfigSetPassword(strings.TrimSpace(string(password))); err != nil {
-		log.Printf("Failed to set password: %s", err)
+		ym.internalLog.Printf("Failed to set password: %s", err)
 		return err
 	}
 	return nil
+}
+
+func (ym *Yggmail) createInternalLog() {
+	logWriter := LogWriter{
+		Output: log.New(color.Output, "", log.LstdFlags|log.Lmsgprefix).Writer(),
+		Logger: ym.Logger,
+	}
+	ym.internalLog = log.New(&logWriter, "[  Yggmail  ] ", log.LstdFlags|log.Lmsgprefix)
 }
 
 func (ym *Yggmail) openDatabase() error {
@@ -97,12 +106,13 @@ func (ym *Yggmail) openDatabase() error {
 		return nil
 	}
 
+	ym.createInternalLog()
 	storage, err := sqlite3.NewSQLite3StorageStorage(ym.DatabaseName)
 	if err != nil {
 		return err
 	}
 	ym.storage = storage
-	ym.sendLog("Using database file %s ", ym.DatabaseName)
+	ym.internalLog.Printf("Using database file %s ", ym.DatabaseName)
 	return nil
 }
 
@@ -130,12 +140,6 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 // Start starts imap and smtp server, peers is be a comma separated sting
 func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers string) error {
 
-	logWriter := LogWriter{
-		Output: log.New(color.Output, "", 0).Writer(),
-		Logger: ym.Logger,
-	}
-
-	yggmailLog := log.New(&logWriter, "[  Yggmail  ] ", 0)
 	var peerAddrs peerAddrList = strings.Split(peers, ",")
 
 	skStr, err := ym.storage.ConfigGet("private_key")
@@ -151,7 +155,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		if err := ym.storage.ConfigSet("private_key", hex.EncodeToString(sk)); err != nil {
 			return err
 		}
-		yggmailLog.Printf("Generated new server identity")
+		ym.internalLog.Printf("Generated new server identity")
 	} else {
 		skBytes, err := hex.DecodeString(skStr)
 		if err != nil {
@@ -160,23 +164,23 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		copy(sk, skBytes)
 	}
 	pk := sk.Public().(ed25519.PublicKey)
-	ym.sendLog("Mail address: %s@%s", hex.EncodeToString(pk), utils.Domain)
+	ym.internalLog.Printf("Mail address: %s@%s", hex.EncodeToString(pk), utils.Domain)
 	ym.AccountName = hex.EncodeToString(pk)
 
 	for _, name := range []string{"INBOX", "Outbox"} {
 		if err := ym.storage.MailboxCreate(name); err != nil {
 			return err
 		} else {
-			yggmailLog.Printf("Mailbox created: %s", name)
+			ym.internalLog.Printf("Mailbox created: %s", name)
 		}
 	}
 
 	if !multicast && len(peerAddrs) == 0 {
-		yggmailLog.Printf("You must specify either -peer, -multicast or both!")
+		ym.internalLog.Printf("You must specify either -peer, -multicast or both!")
 		err := errors.New("You must specify either -peer, -multicast or both!")
 		return err
 	} else {
-		yggmailLog.Printf("multicast/peer Address check successfully passed")
+		ym.internalLog.Printf("multicast/peer Address check successfully passed")
 	}
 
 	cfg := &config.Config{
@@ -184,17 +188,16 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		PrivateKey: sk,
 	}
 
-	yggdrasilLog := log.New(&logWriter, "", 0)
-	transport, err := transport.NewYggdrasilTransport(yggdrasilLog, sk, pk, peerAddrs, multicast)
+	transport, err := transport.NewYggdrasilTransport(ym.internalLog, sk, pk, peerAddrs, multicast)
 	if err != nil {
 		return err
 	}
 	ym.transport = transport
 
-	queues := smtpsender.NewQueues(cfg, yggmailLog, transport, ym.storage)
+	queues := smtpsender.NewQueues(cfg, ym.internalLog, transport, ym.storage)
 
 	imapBackend := &imapserver.Backend{
-		Log:     yggmailLog,
+		Log:     ym.internalLog,
 		Config:  cfg,
 		Storage: ym.storage,
 	}
@@ -211,9 +214,9 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		}
 	}()
 
-	yggmailLog.Printf("Listening for IMAP on: %s", imapaddr)
+	ym.internalLog.Printf("Listening for IMAP on: %s", imapaddr)
 	localBackend := &smtpserver.Backend{
-		Log:     yggmailLog,
+		Log:     ym.internalLog,
 		Mode:    smtpserver.BackendModeInternal,
 		Config:  cfg,
 		Storage: ym.storage,
@@ -229,7 +232,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 	ym.localSmtpServer.AllowInsecureAuth = true
 
 	overlayBackend := &smtpserver.Backend{
-		Log:     yggmailLog,
+		Log:     ym.internalLog,
 		Mode:    smtpserver.BackendModeExternal,
 		Config:  cfg,
 		Storage: ym.storage,
@@ -251,8 +254,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 				return err
 			})
 		})
-
-		ym.sendLog("Listening for SMTP on: %s", ym.localSmtpServer.Addr)
+		ym.internalLog.Printf("Listening for SMTP on: %s", ym.localSmtpServer.Addr)
 		if err := ym.localSmtpServer.ListenAndServe(); err != nil {
 			ym.handleError(ERROR_SMTP, "SMTP error %s", err)
 		}
@@ -273,7 +275,7 @@ func (ym *Yggmail) Stop() {
 	}
 
 	ym.setState(ShuttingDown)
-	ym.sendLog("Shutting down yggmail...")
+	ym.internalLog.Printf("Shutting down yggmail...")
 
 	if ym.localSmtpServer != nil {
 		ym.localSmtpServer.Close()
@@ -304,14 +306,6 @@ func (ym *Yggmail) handleError(errorId int, format string, a ...interface{}) {
 	}
 
 	ym.setState(Error)
-	if ym.Logger != nil {
-		ym.Logger.LogError(errorId, fmt.Sprintf("[  Yggmail  ] %s", fmt.Sprintf(format, a...)))
-	}
+	ym.internalLog.Printf(fmt.Sprintf(format, a...))
 	ym.Stop()
-}
-
-func (ym *Yggmail) sendLog(format string, a ...interface{}) {
-	if ym.Logger != nil {
-		ym.Logger.LogMessage(fmt.Sprintf("[  Yggmail  ] %s", fmt.Sprintf(format, a...)))
-	}
 }
