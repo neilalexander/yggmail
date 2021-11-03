@@ -37,9 +37,9 @@ const (
 
 // constants defining Yggmail.state
 const (
-	Running = iota
+	Stopped = iota
+	Running
 	ShuttingDown
-	Stopped
 	Error
 )
 
