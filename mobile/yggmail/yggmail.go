@@ -22,8 +22,6 @@ import (
 	"github.com/neilalexander/yggmail/internal/utils"
 )
 
-type peerAddrList []string
-
 // constants defining error types
 const (
 	ERROR_OPEN_DB = iota
@@ -140,7 +138,10 @@ func (ym *Yggmail) Start(smtpaddr string, imapaddr string, multicast bool, peers
 // Start starts imap and smtp server, peers is be a comma separated sting
 func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers string) error {
 
-	var peerAddrs peerAddrList = strings.Split(peers, ",")
+	var peerAddrs []string = strings.Split(peers, ",")
+	if len(peerAddrs[0]) == 0 {
+		peerAddrs = nil
+	}
 
 	skStr, err := ym.storage.ConfigGet("private_key")
 	if err != nil {
@@ -175,7 +176,7 @@ func (ym *Yggmail) start(smtpaddr string, imapaddr string, multicast bool, peers
 		}
 	}
 
-	if !multicast && len(peerAddrs) == 0 {
+	if !multicast && peerAddrs == nil {
 		ym.internalLog.Printf("You must specify either -peer, -multicast or both!")
 		err := errors.New("You must specify either -peer, -multicast or both!")
 		return err
