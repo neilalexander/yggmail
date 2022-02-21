@@ -25,7 +25,9 @@ import (
 )
 
 type YggdrasilTransport struct {
-	Sessions *utp.Socket
+	Sessions  *utp.Socket
+	Core      *core.Core
+	Multicast *multicast.Multicast
 }
 
 func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.PublicKey, peers []string, mcast bool) (*YggdrasilTransport, error) {
@@ -55,6 +57,7 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 	if err := core.Start(config, glog); err != nil {
 		return nil, fmt.Errorf("core.Start: %w", err)
 	}
+	var mc *multicast.Multicast
 	if mcast {
 		multicast := &multicast.Multicast{}
 		if err := multicast.Init(core, config, glog, nil); err != nil {
@@ -63,13 +66,16 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		if err := multicast.Start(); err != nil {
 			return nil, fmt.Errorf("multicast.Start: %w", err)
 		}
+		mc = multicast
 	}
 	us, err := utp.NewSocketFromPacketConnNoClose(core)
 	if err != nil {
 		return nil, fmt.Errorf("utp.NewSocketFromPacketConnNoClose: %w", err)
 	}
 	return &YggdrasilTransport{
-		Sessions: us,
+		Sessions:  us,
+		Core:      core,
+		Multicast: mc,
 	}, nil
 }
 
@@ -85,4 +91,11 @@ func (t *YggdrasilTransport) Dial(host string) (net.Conn, error) {
 
 func (t *YggdrasilTransport) Listener() net.Listener {
 	return t.Sessions
+}
+
+func (t *YggdrasilTransport) Stop() {
+	t.Core.Stop()
+	if t.Multicast != nil {
+		t.Multicast.Stop()
+	}
 }
