@@ -48,7 +48,7 @@ func (i *peerAddrList) Set(value string) error {
 func main() {
 	rawlog := log.New(color.Output, "", 0)
 	green := color.New(color.FgGreen).SprintfFunc()
-	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), log.LstdFlags | log.Lmsgprefix)
+	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), log.LstdFlags|log.Lmsgprefix)
 
 	var peerAddrs peerAddrList
 	database := flag.String("database", "yggmail.db", "SQLite database file")
@@ -175,7 +175,7 @@ func main() {
 		localServer := smtp.NewServer(localBackend)
 		localServer.Addr = *smtpaddr
 		localServer.Domain = hex.EncodeToString(pk)
-		localServer.MaxMessageBytes = 1024 * 1024
+		localServer.MaxMessageBytes = 1024 * 1024 * 32
 		localServer.MaxRecipients = 50
 		localServer.AllowInsecureAuth = true
 		localServer.EnableAuth(sasl.Login, func(conn *smtp.Conn) sasl.Server {
@@ -203,7 +203,7 @@ func main() {
 
 		overlayServer := smtp.NewServer(overlayBackend)
 		overlayServer.Domain = hex.EncodeToString(pk)
-		overlayServer.MaxMessageBytes = 1024 * 1024
+		overlayServer.MaxMessageBytes = 1024 * 1024 * 32
 		overlayServer.MaxRecipients = 50
 		overlayServer.AuthDisabled = true
 
