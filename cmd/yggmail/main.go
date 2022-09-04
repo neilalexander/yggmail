@@ -48,7 +48,7 @@ func (i *peerAddrList) Set(value string) error {
 func main() {
 	rawlog := log.New(color.Output, "", 0)
 	green := color.New(color.FgGreen).SprintfFunc()
-	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), 0)
+	log := log.New(rawlog.Writer(), fmt.Sprintf("[  %s  ] ", green("Yggmail")), log.LstdFlags | log.Lmsgprefix)
 
 	var peerAddrs peerAddrList
 	database := flag.String("database", "yggmail.db", "SQLite database file")
