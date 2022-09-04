@@ -12,13 +12,13 @@ Yggmail is a single-binary all-in-one mail transfer agent which sends and receiv
 * All mail exchange traffic between any two Yggmail nodes is always end-to-end encrypted without exception;
 * Yggdrasil and Yggmail nodes on the same network are discovered automatically using multicast or you can configure a static Yggdrasil peer.
 
-Email addresses are based on your public key, like `617b5772c6d10feda41fc6e0e43b976c4cc9383d3729310d3dc9e1332f0d9acd@yggmail`. 
+Email addresses are based on your public key, like `89cd1ea25d99b8ccf29e454280313128c234ffb82aa0eb2e3496f6f156d063d0@yggmail`.
 
 ## Why?
 
 There are all sorts of messaging services in the world but there is still a lot of value in asynchronous communication. Email is something that a lot of people understand reasonably well and there is still a huge volume of software in the world which supports email. Yggmail is designed to comply with the standards that people know and expect.
 
-Yggdrasil is well-suited for ad-hoc mail delivery and allows Yggmail to work even in closed networks, where Internet or other connectivity is restricted or simply not available. It guarantees end-to-end encryption and handles networks with changing topologies reasonably well. 
+Yggdrasil is well-suited for ad-hoc mail delivery and allows Yggmail to work even in closed networks, where Internet or other connectivity is restricted or simply not available. It guarantees end-to-end encryption and handles networks with changing topologies reasonably well.
 
 ## Quickstart
 
@@ -29,16 +29,19 @@ go install github.com/neilalexander/yggmail/cmd/yggmail@latest
 ```
 
 It will then be installed into your `GOPATH`, so add that to your environment:
+
 ```
 export PATH=$PATH:`go env GOPATH`/bin
 ```
 
 Create a mailbox and set your password. Your Yggmail database will automatically be created in your working directory if it doesn't already exist:
+
 ```
 yggmail -password
 ```
 
 Start Yggmail, using the database in your working directory, with either multicast enabled, an [Yggdrasil static peer](https://publicpeers.neilalexander.dev/) specified or both:
+
 ```
 yggmail -multicast
 yggmail -peer=tls://...
