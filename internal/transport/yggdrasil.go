@@ -55,7 +55,7 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 	}
 
 	// Setup the multicast module.
-	{
+	if mcast {
 		options := []multicast.SetupOption{
 			multicast.MulticastInterface{
 				Regex:  regexp.MustCompile(".*"),
