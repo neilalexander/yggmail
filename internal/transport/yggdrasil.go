@@ -59,8 +59,8 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		options := []multicast.SetupOption{
 			multicast.MulticastInterface{
 				Regex:  regexp.MustCompile(".*"),
-				Beacon: true,
-				Listen: true,
+				Beacon: mcast,
+				Listen: mcast,
 			},
 		}
 		if _, err = multicast.New(ygg, glog, options...); err != nil {
