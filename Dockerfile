@@ -7,6 +7,11 @@ RUN apk add --no-cache --update go gcc g++
 RUN go build -o /src/yggmail ./cmd/yggmail
 
 FROM docker.io/alpine
+
+LABEL org.opencontainers.image.source=https://github.com/neilalexander/yggmail
+LABEL org.opencontainers.image.description=Yggmail
+LABEL org.opencontainers.image.licenses=MPL-2.0
+
 COPY --from=builder /src/yggmail /usr/bin/yggmail
 
 EXPOSE 1143/tcp
