@@ -20,6 +20,7 @@ import (
 	"github.com/fatih/color"
 	gologme "github.com/gologme/log"
 	"github.com/neilalexander/utp"
+	"github.com/yggdrasil-network/yggdrasil-go/src/config"
 	"github.com/yggdrasil-network/yggdrasil-go/src/core"
 	"github.com/yggdrasil-network/yggdrasil-go/src/multicast"
 )
@@ -35,6 +36,10 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 	glog.EnableLevel("error")
 	glog.EnableLevel("info")
 
+	cfg := config.GenerateConfig()
+	copy(cfg.PrivateKey, sk)
+	cfg.GenerateSelfSignedCertificate()
+
 	var ygg *core.Core
 	var err error
 
@@ -49,7 +54,7 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		for _, peer := range peers {
 			options = append(options, core.Peer{URI: peer})
 		}
-		if ygg, err = core.New(sk[:], glog, options...); err != nil {
+		if ygg, err = core.New(cfg.Certificate, glog, options...); err != nil {
 			panic(err)
 		}
 	}
