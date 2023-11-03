@@ -39,7 +39,7 @@ func NewQueues(config *config.Config, log *log.Logger, transport transport.Trans
 		Transport: transport,
 		Storage:   storage,
 	}
-	go qs.manager()
+	time.AfterFunc(time.Second*5, qs.manager)
 	return qs
 }
 
@@ -51,7 +51,7 @@ func (qs *Queues) manager() {
 	for _, destination := range destinations {
 		_, _ = qs.queueFor(destination)
 	}
-	time.AfterFunc(time.Minute*10, qs.manager)
+	time.AfterFunc(time.Minute, qs.manager)
 }
 
 func (qs *Queues) QueueFor(from string, rcpts []string, content []byte) error {
@@ -90,7 +90,7 @@ func (qs *Queues) queueFor(server string) (*Queue, error) {
 	if !ok {
 		return nil, fmt.Errorf("type assertion error")
 	}
-	if q.running.CAS(false, true) {
+	if q.running.CompareAndSwap(false, true) {
 		go q.run()
 	}
 	return q, nil
