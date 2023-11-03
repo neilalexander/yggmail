@@ -31,7 +31,7 @@ func NewIMAPServer(backend *Backend, addr string, insecure bool) (*IMAPServer, *
 	s.server.AllowInsecureAuth = insecure
 	//s.server.Debug = os.Stdout
 	s.server.Enable(idle.NewExtension())
-	s.server.Enable(notify)
+	//s.server.Enable(notify)
 	s.server.EnableAuth(sasl.Login, func(conn server.Conn) sasl.Server {
 		return sasl.NewLoginServer(func(username, password string) error {
 			_, err := s.backend.Login(nil, username, password)

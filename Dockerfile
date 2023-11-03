@@ -18,4 +18,4 @@ EXPOSE 1143/tcp
 EXPOSE 1025/tcp
 VOLUME /etc/yggmail
 
-ENTRYPOINT ["/usr/bin/yggmail", "-database=/etc/yggmail/yggmail.db"]
+ENTRYPOINT ["/usr/bin/yggmail", "-smtp=:1025", "-imap=:1143", "-database=/etc/yggmail/yggmail.db"]
