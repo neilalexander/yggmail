@@ -123,7 +123,7 @@ func (q *Queue) run() {
 		q.queues.Log.Println("Sending mail from", ref.From, "to", q.destination)
 
 		if err := func() error {
-			conn, err := q.queues.Transport.Dial(q.destination)
+			conn, err := q.queues.Transport.Dial("yggdrasil", q.destination)
 			if err != nil {
 				return fmt.Errorf("q.queues.Transport.Dial: %w", err)
 			}
