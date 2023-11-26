@@ -1,5 +1,5 @@
-github.com/Arceliar/ironwood v0.0.0-20231104025256-ec84c695fc44 h1:u328GAZGtL0W4oFWQs4YWHZT215LL6Lw9aYJxx76UVs=
-github.com/Arceliar/ironwood v0.0.0-20231104025256-ec84c695fc44/go.mod h1:5x7fWW0mshe9WQ1lvSMmmHBYC3BeHH9gpwW5tz7cbfw=
+github.com/Arceliar/ironwood v0.0.0-20231126105342-ad38416a77c8 h1:qyXiPZClVoe6QsbsiDP23g0Ze/MNXiHIAL/nVNfauH0=
+github.com/Arceliar/ironwood v0.0.0-20231126105342-ad38416a77c8/go.mod h1:5x7fWW0mshe9WQ1lvSMmmHBYC3BeHH9gpwW5tz7cbfw=
 github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d h1:UK9fsWbWqwIQkMCz1CP+v5pGbsGoWAw6g4AyvMpm1EM=
 github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d/go.mod h1:BCnxhRf47C/dy/e/D2pmB8NkB3dQVIrkD98b220rx5Q=
 github.com/bits-and-blooms/bitset v1.3.1/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
@@ -71,10 +71,10 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/twmb/murmur3 v1.1.6 h1:mqrRot1BRxm+Yct+vavLMou2/iJt0tNVTTC0QoIjaZg=
 github.com/twmb/murmur3 v1.1.6/go.mod h1:Qq/R7NUyOfr65zD+6Q5IHKsJLwP7exErjN6lyyq3OSQ=
-github.com/yggdrasil-network/yggdrasil-go v0.5.2 h1:OEt5xi5iQDhK4yGjp0Bq9B0uZyQz741WIlorE8oVW1c=
-github.com/yggdrasil-network/yggdrasil-go v0.5.2/go.mod h1:oATGHx91oFqq3h3RKFU9qADFcO27TCf3CbQqrG2wzvU=
-github.com/yggdrasil-network/yggquic v0.0.0-20231126155506-966e783e183d h1:4sK8R6zUDo8jD7Rph5lMV3mhbIfAh60ihpfpB4kASJU=
-github.com/yggdrasil-network/yggquic v0.0.0-20231126155506-966e783e183d/go.mod h1:gv+bkfk5XSTignK4PJNOKCiwbQX5QA+TCxxYYOVkEpw=
+github.com/yggdrasil-network/yggdrasil-go v0.5.3 h1:tfAajYmaiS1L9XevdEC1VUpScpgFfCW7/oEEWxdv5aM=
+github.com/yggdrasil-network/yggdrasil-go v0.5.3/go.mod h1:qRzHB8bKEIpd1pQVYoZ+SedJJTBG0X9sbyctWxQDDGA=
+github.com/yggdrasil-network/yggquic v0.0.0-20231126185920-d9d7795ed0fb h1:h/D4rW/X7zBg9muVSb3OKijlfdEkPG3Z4bBs6293R9M=
+github.com/yggdrasil-network/yggquic v0.0.0-20231126185920-d9d7795ed0fb/go.mod h1:lSZiq46O5P8KD2Qfp+WklAEPPIAbakx0vStj0bwuIS8=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.uber.org/atomic v1.11.0 h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=
 go.uber.org/atomic v1.11.0/go.mod h1:LUxbIzbOniOlMKjJjyPfpl4v+PKK2cNJn91OQbhoJI0=
