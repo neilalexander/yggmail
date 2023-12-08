@@ -69,5 +69,5 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		}
 	}
 
-	return yggquic.New(ygg, *cfg.Certificate)
+	return yggquic.New(ygg, *cfg.Certificate, nil)
 }
