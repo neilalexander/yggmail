@@ -12,7 +12,7 @@ require (
 	github.com/gologme/log v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/yggdrasil-network/yggdrasil-go v0.5.4
-	github.com/yggdrasil-network/yggquic v0.0.0-20231208191627-3a9cdfd9fdba
+	github.com/yggdrasil-network/yggquic v0.0.0-20231209220136-b412fc6f0d7e
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.14.0
 	golang.org/x/term v0.13.0
