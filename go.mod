@@ -10,7 +10,7 @@ require (
 	github.com/emersion/go-smtp v0.15.0
 	github.com/fatih/color v1.15.0
 	github.com/gologme/log v1.3.0
-	github.com/mattn/go-sqlite3 v1.14.17
+	github.com/mattn/go-sqlite3 v1.14.18
 	github.com/yggdrasil-network/yggdrasil-go v0.5.4
 	github.com/yggdrasil-network/yggquic v0.0.0-20231209220136-b412fc6f0d7e
 	go.uber.org/atomic v1.11.0
