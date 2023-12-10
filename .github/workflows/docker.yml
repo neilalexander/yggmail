@@ -32,4 +32,4 @@ jobs:
           platforms: ${{ env.PLATFORMS }}
           push: true
           tags: |
-            ghcr.io/${{ github.repository_owner }}/yggmail:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/yggmail:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}
