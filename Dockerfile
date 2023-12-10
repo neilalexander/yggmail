@@ -1,4 +1,4 @@
-FROM docker.io/golang:alpine as builder
+FROM docker.io/golang:alpine3.18 as builder
 
 COPY . /src
 WORKDIR /src
@@ -6,7 +6,7 @@ WORKDIR /src
 RUN apk add --no-cache --update go gcc g++
 RUN go build -o /src/yggmail ./cmd/yggmail
 
-FROM docker.io/alpine
+FROM docker.io/alpine:3.18
 
 LABEL org.opencontainers.image.source=https://github.com/neilalexander/yggmail
 LABEL org.opencontainers.image.description=Yggmail
