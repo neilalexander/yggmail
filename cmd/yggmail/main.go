@@ -207,7 +207,7 @@ func main() {
 		overlayServer.MaxRecipients = 50
 		overlayServer.AuthDisabled = true
 
-		if err := overlayServer.Serve(transport); err != nil {
+		if err := overlayServer.Serve(transport.Listener()); err != nil {
 			log.Fatal(err)
 		}
 	}()

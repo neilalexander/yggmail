@@ -1,5 +1,5 @@
-github.com/Arceliar/ironwood v0.0.0-20231127131626-465b82dfb5bd h1:458tnmZ4zM2gbLtefdYbaxyAJevDNEWu6tLKEqbK4wg=
-github.com/Arceliar/ironwood v0.0.0-20231127131626-465b82dfb5bd/go.mod h1:5x7fWW0mshe9WQ1lvSMmmHBYC3BeHH9gpwW5tz7cbfw=
+github.com/Arceliar/ironwood v0.0.0-20231104025256-ec84c695fc44 h1:u328GAZGtL0W4oFWQs4YWHZT215LL6Lw9aYJxx76UVs=
+github.com/Arceliar/ironwood v0.0.0-20231104025256-ec84c695fc44/go.mod h1:5x7fWW0mshe9WQ1lvSMmmHBYC3BeHH9gpwW5tz7cbfw=
 github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d h1:UK9fsWbWqwIQkMCz1CP+v5pGbsGoWAw6g4AyvMpm1EM=
 github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d/go.mod h1:BCnxhRf47C/dy/e/D2pmB8NkB3dQVIrkD98b220rx5Q=
 github.com/bits-and-blooms/bitset v1.3.1/go.mod h1:gIdJ4wp64HaoK2YrL1Q5/N7Y16edYb8uY+O0FJTyyDA=
@@ -49,8 +49,8 @@ github.com/mattn/go-colorable v0.1.13/go.mod h1:7S9/ev0klgBDR4GtXTXX8a3vIGJpMovk
 github.com/mattn/go-isatty v0.0.16/go.mod h1:kYGgaQfpe5nmfYZH+SKPsOc2e4SrIfOl2e/yFXSvRLM=
 github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWEY=
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
-github.com/mattn/go-sqlite3 v1.14.18 h1:JL0eqdCOq6DJVNPSvArO/bIV9/P7fbGrV00LZHc+5aI=
-github.com/mattn/go-sqlite3 v1.14.18/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
+github.com/mattn/go-sqlite3 v1.14.17 h1:mCRHCLDUBXgpKAqIKsaAaAsrAlbkeomtRFKXh2L6YIM=
+github.com/mattn/go-sqlite3 v1.14.17/go.mod h1:2eHXhiwb8IkHr+BDWZGa96P6+rkvnG63S2DGjv9HUNg=
 github.com/onsi/ginkgo/v2 v2.13.0 h1:0jY9lJquiL8fcf3M4LAXN5aMlS/b2BV86HFFPCPMgE4=
 github.com/onsi/ginkgo/v2 v2.13.0/go.mod h1:TE309ZR8s5FsKKpuB1YAQYBzCaAfUgatB/xlT/ETL/o=
 github.com/onsi/gomega v1.27.10 h1:naR28SdDFlqrG6kScpT8VWpu1xWY5nJRCF3XaYyBjhI=
@@ -67,10 +67,8 @@ github.com/stretchr/testify v1.7.0 h1:nwc3DEeHmmLAfoZucVR881uASk0Mfjw8xYJ99tb5Cc
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/twmb/murmur3 v1.1.6 h1:mqrRot1BRxm+Yct+vavLMou2/iJt0tNVTTC0QoIjaZg=
 github.com/twmb/murmur3 v1.1.6/go.mod h1:Qq/R7NUyOfr65zD+6Q5IHKsJLwP7exErjN6lyyq3OSQ=
-github.com/yggdrasil-network/yggdrasil-go v0.5.4 h1:A7ZFmxkkbZhtqJgQXBVDw5sHsi25aUawLlJCCHnNsAs=
-github.com/yggdrasil-network/yggdrasil-go v0.5.4/go.mod h1:TLmU4X0nfzCY9t5xABtFQ6GLoOtCae8xVatC9JwjD5I=
-github.com/yggdrasil-network/yggquic v0.0.0-20231209220136-b412fc6f0d7e h1:Ncp4P0jFiIJ+6o06a4PABcvWeJDdbUQSjMVaJVSOu2I=
-github.com/yggdrasil-network/yggquic v0.0.0-20231209220136-b412fc6f0d7e/go.mod h1:XFL2wkUXrqdl4AYiJghA+wW9xAm4ISvUtNrHdWPXjsE=
+github.com/yggdrasil-network/yggdrasil-go v0.5.2 h1:OEt5xi5iQDhK4yGjp0Bq9B0uZyQz741WIlorE8oVW1c=
+github.com/yggdrasil-network/yggdrasil-go v0.5.2/go.mod h1:oATGHx91oFqq3h3RKFU9qADFcO27TCf3CbQqrG2wzvU=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.uber.org/atomic v1.11.0 h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=
 go.uber.org/atomic v1.11.0/go.mod h1:LUxbIzbOniOlMKjJjyPfpl4v+PKK2cNJn91OQbhoJI0=

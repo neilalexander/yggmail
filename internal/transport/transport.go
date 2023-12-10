@@ -13,6 +13,6 @@ import (
 )
 
 type Transport interface {
-	Dial(network, host string) (net.Conn, error)
-	net.Listener
+	Dial(host string) (net.Conn, error)
+	Listener() net.Listener
 }

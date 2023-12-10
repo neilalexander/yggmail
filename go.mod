@@ -3,6 +3,7 @@ module github.com/neilalexander/yggmail
 go 1.20
 
 require (
+	github.com/Arceliar/ironwood v0.0.0-20231104025256-ec84c695fc44
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445
 	github.com/emersion/go-message v0.17.0
@@ -10,16 +11,15 @@ require (
 	github.com/emersion/go-smtp v0.15.0
 	github.com/fatih/color v1.15.0
 	github.com/gologme/log v1.3.0
-	github.com/mattn/go-sqlite3 v1.14.18
-	github.com/yggdrasil-network/yggdrasil-go v0.5.4
-	github.com/yggdrasil-network/yggquic v0.0.0-20231209220136-b412fc6f0d7e
+	github.com/mattn/go-sqlite3 v1.14.17
+	github.com/quic-go/quic-go v0.40.0
+	github.com/yggdrasil-network/yggdrasil-go v0.5.2
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.14.0
 	golang.org/x/term v0.13.0
 )
 
 require (
-	github.com/Arceliar/ironwood v0.0.0-20231127131626-465b82dfb5bd // indirect
 	github.com/Arceliar/phony v0.0.0-20220903101357-530938a4b13d // indirect
 	github.com/bits-and-blooms/bitset v1.10.0 // indirect
 	github.com/bits-and-blooms/bloom/v3 v3.6.0 // indirect
@@ -31,7 +31,6 @@ require (
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/onsi/ginkgo/v2 v2.13.0 // indirect
 	github.com/quic-go/qtls-go1-20 v0.4.1 // indirect
-	github.com/quic-go/quic-go v0.40.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	go.uber.org/mock v0.3.0 // indirect
 	golang.org/x/exp v0.0.0-20231006140011-7918f672742d // indirect
