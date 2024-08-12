@@ -15,7 +15,7 @@ require (
 	github.com/gologme/log v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.17
 	github.com/quic-go/quic-go v0.45.1
-	github.com/yggdrasil-network/yggdrasil-go v0.5.7
+	github.com/yggdrasil-network/yggdrasil-go v0.5.8
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.25.0
 	golang.org/x/term v0.22.0
