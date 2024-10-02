@@ -55,6 +55,7 @@ func main() {
 	smtpaddr := flag.String("smtp", "localhost:1025", "SMTP listen address")
 	imapaddr := flag.String("imap", "localhost:1143", "IMAP listen address")
 	multicast := flag.Bool("multicast", false, "Connect to Yggdrasil peers on your LAN")
+        mcastregexp := flag.String("mcastregexp", ".*", "Regexp for multicast")
 	password := flag.Bool("password", false, "Set a new IMAP/SMTP password")
 	flag.Var(&peerAddrs, "peer", "Connect to a specific Yggdrasil static peer (this option can be given more than once)")
 	flag.Parse()
@@ -135,6 +136,7 @@ func main() {
 	case (multicast == nil || !*multicast) && len(peerAddrs) == 0:
 		log.Printf("You must specify either -peer, -multicast or both!")
 		os.Exit(0)
+
 	}
 
 	cfg := &config.Config{
@@ -142,7 +144,7 @@ func main() {
 		PrivateKey: sk,
 	}
 
-	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, peerAddrs, *multicast)
+	transport, err := transport.NewYggdrasilTransport(rawlog, sk, pk, peerAddrs, *multicast, *mcastregexp)
 	if err != nil {
 		panic(err)
 	}

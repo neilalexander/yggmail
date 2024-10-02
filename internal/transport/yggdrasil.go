@@ -50,7 +50,7 @@ type yggdrasilDial struct {
 	context.CancelFunc
 }
 
-func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.PublicKey, peers []string, mcast bool) (*YggdrasilTransport, error) {
+func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.PublicKey, peers []string, mcast bool, mcastregexp string) (*YggdrasilTransport, error) {
 	yellow := color.New(color.FgYellow).SprintfFunc()
 	glog := gologme.New(log.Writer(), fmt.Sprintf("[ %s ] ", yellow("Yggdrasil")), gologme.LstdFlags|gologme.Lmsgprefix)
 	glog.EnableLevel("warn")
@@ -86,7 +86,7 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 	{
 		options := []multicast.SetupOption{
 			multicast.MulticastInterface{
-				Regex:  regexp.MustCompile(".*"),
+				Regex:  regexp.MustCompile(mcastregexp),
 				Beacon: mcast,
 				Listen: mcast,
 			},
