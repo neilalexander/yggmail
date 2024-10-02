@@ -63,6 +63,7 @@ The following command line switches are supported by the `yggmail` binary:
 
 * `-peer=tls://...` or `-peer=tcp://...` — connect to a specific Yggdrasil node, like one of the [Public Peers](https://publicpeers.neilalexander.dev/);
 * `-multicast` - enable multicast peer discovery for Yggdrasil nodes on your LAN
+* `-mcastregexp=".*"` - regexp used in muticast peer discovery for interface name selection.
 * `-database=/path/to/yggmail.db` — use a specific database file;
 * `-smtp=listenaddr:port` — listen for SMTP on a specific address/port
 * `-imap=listenaddr:port` — listen for IMAP on a specific address/port;
