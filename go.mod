@@ -13,7 +13,7 @@ require (
 	github.com/emersion/go-smtp v0.15.0
 	github.com/fatih/color v1.15.0
 	github.com/gologme/log v1.3.0
-	github.com/mattn/go-sqlite3 v1.14.17
+	github.com/mattn/go-sqlite3 v1.14.24
 	github.com/quic-go/quic-go v0.46.0
 	github.com/yggdrasil-network/yggdrasil-go v0.5.9
 	go.uber.org/atomic v1.11.0
