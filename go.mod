@@ -1,11 +1,11 @@
 module github.com/neilalexander/yggmail
 
-go 1.21
+go 1.22
 
-toolchain go1.21.5
+toolchain go1.23.0
 
 require (
-	github.com/Arceliar/ironwood v0.0.0-20241210120540-9deb08d9f8f9
+	github.com/Arceliar/ironwood v0.0.0-20241213013129-743fe2fccbd3
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445
 	github.com/emersion/go-message v0.17.0
@@ -14,8 +14,8 @@ require (
 	github.com/fatih/color v1.18.0
 	github.com/gologme/log v1.3.0
 	github.com/mattn/go-sqlite3 v1.14.24
-	github.com/quic-go/quic-go v0.46.0
-	github.com/yggdrasil-network/yggdrasil-go v0.5.11
+	github.com/quic-go/quic-go v0.48.2
+	github.com/yggdrasil-network/yggdrasil-go v0.5.12
 	go.uber.org/atomic v1.11.0
 	golang.org/x/crypto v0.31.0
 	golang.org/x/term v0.27.0
@@ -33,7 +33,6 @@ require (
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/onsi/ginkgo/v2 v2.13.0 // indirect
-	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/wlynxg/anet v0.0.5 // indirect
 	go.uber.org/mock v0.4.0 // indirect
 	golang.org/x/exp v0.0.0-20240719175910-8a7402abbf56 // indirect
