@@ -70,6 +70,9 @@ func (qs *Queues) QueueFor(from string, rcpts []string, content []byte) error {
 			return fmt.Errorf("parseAddress: %w", err)
 		}
 		host := hex.EncodeToString(pk)
+		if host == hex.EncodeToString(qs.Config.PublicKey) {
+			continue
+		}
 
 		if err := qs.Storage.QueueInsertDestinationForID(host, pid, from, rcpt); err != nil {
 			return fmt.Errorf("qs.Storage.QueueInsertDestinationForID: %w", err)
@@ -104,7 +107,6 @@ type Queue struct {
 
 func (q *Queue) run() {
 	defer q.running.Store(false)
-	defer q.queues.Storage.MailExpunge("Outbox") // nolint:errcheck
 
 	refs, err := q.queues.Storage.QueueMailIDsForDestination(q.destination)
 	if err != nil {
@@ -112,6 +114,7 @@ func (q *Queue) run() {
 	}
 
 	q.queues.Log.Println("There are", len(refs), "mail(s) queued for", q.destination)
+	defer q.queues.Storage.MailExpunge("Outbox") // nolint:errcheck
 
 	for _, ref := range refs {
 		_, mail, err := q.queues.Storage.MailSelect("Outbox", ref.ID)
