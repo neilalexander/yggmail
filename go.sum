@@ -54,6 +54,8 @@ github.com/mattn/go-isatty v0.0.20 h1:xfD0iDuEKnDkl03q4limB+vH+GxLEtL/jb4xVJSWWE
 github.com/mattn/go-isatty v0.0.20/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
 github.com/mattn/go-sqlite3 v1.14.24 h1:tpSp2G2KyMnnQu99ngJ47EIkWVmliIizyZBfPrBWDRM=
 github.com/mattn/go-sqlite3 v1.14.24/go.mod h1:Uh1q+B4BYcTPb+yiD3kU8Ct7aC0hY9fxUwlHK0RXw+Y=
+github.com/neilalexander/generique v0.0.0-20251127000013-def6a5bd842a h1:iV/ivYwvXCsNOEFIc4YjQNbq+pmTqhON/rFQcjYLEPs=
+github.com/neilalexander/generique v0.0.0-20251127000013-def6a5bd842a/go.mod h1:dJzRxTIvxTW+LULsKqkBmaYRrXiGbee6mvvUPoj/Pvk=
 github.com/onsi/ginkgo/v2 v2.13.0 h1:0jY9lJquiL8fcf3M4LAXN5aMlS/b2BV86HFFPCPMgE4=
 github.com/onsi/ginkgo/v2 v2.13.0/go.mod h1:TE309ZR8s5FsKKpuB1YAQYBzCaAfUgatB/xlT/ETL/o=
 github.com/onsi/gomega v1.27.10 h1:naR28SdDFlqrG6kScpT8VWpu1xWY5nJRCF3XaYyBjhI=
@@ -73,6 +75,8 @@ github.com/wlynxg/anet v0.0.5 h1:J3VJGi1gvo0JwZ/P1/Yc/8p63SoW98B5dHkYDmpgvvU=
 github.com/wlynxg/anet v0.0.5/go.mod h1:eay5PRQr7fIVAMbTbchTnO9gG65Hg/uYGdc7mguHxoA=
 github.com/yggdrasil-network/yggdrasil-go v0.5.12 h1:SaQ8d59JP+uFy+nOWXTx1ETM5r2uCfe1Gt/d+IodHJw=
 github.com/yggdrasil-network/yggdrasil-go v0.5.12/go.mod h1:u4DU6dpTfWmVs8r0WjW1T3UpGyeUh9vRrS8zngvncwM=
+github.com/yggdrasil-network/yggquic v0.0.0-20251127000438-f4f94a6def24 h1:G7+Q8WCBRqSEidXz0jMcTIPibo7SImRbrvPHRsMsYM4=
+github.com/yggdrasil-network/yggquic v0.0.0-20251127000438-f4f94a6def24/go.mod h1:AbOaTarCfQS5wB/YuUtAho9UeBhBEYgEylK+9SyPiwM=
 github.com/yuin/goldmark v1.4.13/go.mod h1:6yULJ656Px+3vBD8DxQVa3kxgyrAnzto9xy5taEt/CY=
 go.uber.org/atomic v1.11.0 h1:ZvwS0R+56ePWxUNi+Atn9dWONBPp/AUETXlHW0DxSjE=
 go.uber.org/atomic v1.11.0/go.mod h1:LUxbIzbOniOlMKjJjyPfpl4v+PKK2cNJn91OQbhoJI0=
