@@ -74,7 +74,7 @@ func NewYggdrasilTransport(log *log.Logger, sk ed25519.PrivateKey, pk ed25519.Pu
 		}
 	}
 
-	yq, err := yggquic.New(ygg, *cfg.Certificate, nil)
+	yq, err := yggquic.New(ygg, nil)
 	if err != nil {
 		panic(err)
 	}
