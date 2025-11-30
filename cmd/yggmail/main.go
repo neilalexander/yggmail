@@ -135,8 +135,13 @@ func main() {
 		os.Exit(0)
 
 	case passwordhash != nil:
-		var hash string = *passwordhash;
-		log.Printf("Using password hash: %v\n", hash);
+		var hash string = strings.TrimSpace(*passwordhash);
+		if len(hash) == 0 {
+			log.Println("Password hash cannot be blank");
+			os.Exit(1);
+		}
+		
+		log.Printf("Using password hash: '%v'\n", hash);
 
 		if err := storage.ConfigSetPassword(hash); err != nil {
 			log.Println("Failed to set password: ", err);
