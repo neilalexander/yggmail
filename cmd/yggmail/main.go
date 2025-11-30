@@ -158,6 +158,8 @@ func main() {
 			log.Println("Failed to set password: ", err);
 			os.Exit(1)
 		}
+
+		log.Println("Password for IMAP and SMTP has been updated!")
 	case (multicast == nil || !*multicast) && len(peerAddrs) == 0:
 		log.Printf("You must specify either -peer, -multicast or both!")
 		os.Exit(0)
