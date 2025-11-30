@@ -57,7 +57,7 @@ func main() {
 	multicast := flag.Bool("multicast", false, "Connect to Yggdrasil peers on your LAN")
         mcastregexp := flag.String("mcastregexp", ".*", "Regexp for multicast")
 	password := flag.Bool("password", false, "Set a new IMAP/SMTP password")
-	passwordhash := flag.String("passwordHash", false, "Set a new IMAP/SMTP password (hash)")
+	passwordhash := flag.String("passwordHash", "", "Set a new IMAP/SMTP password (hash)")
 	flag.Var(&peerAddrs, "peer", "Connect to a specific Yggdrasil static peer (this option can be given more than once)")
 	flag.Parse()
 
