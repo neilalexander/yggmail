@@ -74,12 +74,14 @@ func (t *TableConfig) ConfigSet(key, value string) error {
 	})
 }
 
-func (t *TableConfig) ConfigSetPassword(password string) error {
-	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return fmt.Errorf("bcrypt.GenerateFromPassword: %w", err)
-	}
-	return t.ConfigSet("password", string(hash))
+func (t *TableConfig) ConfigSetPassword(passwordHash string) error {
+	// FIXME: Assume in coming `password` is ALREADY `string(hash)`
+	// hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	// if err != nil {
+		// return fmt.Errorf("bcrypt.GenerateFromPassword: %w", err)
+	// }
+	// return t.ConfigSet("password", string(hash))
+	return t.ConfigSet("password", passwordHash)
 }
 
 func (t *TableConfig) ConfigTryPassword(password string) (bool, error) {

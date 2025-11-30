@@ -32,6 +32,8 @@ import (
 	"github.com/neilalexander/yggmail/internal/storage/sqlite3"
 	"github.com/neilalexander/yggmail/internal/transport"
 	"github.com/neilalexander/yggmail/internal/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type peerAddrList []string
@@ -126,7 +128,18 @@ func main() {
 			log.Println("The supplied passwords do not match")
 			os.Exit(1)
 		}
-		if err := storage.ConfigSetPassword(strings.TrimSpace(string(password1))); err != nil {
+		
+		// trim away whitespace of UTF-8 bytes now as string
+		finalPassword := strings.TrimSpace(string(password1))
+
+		// perform hash
+		hash, err := bcrypt.GenerateFromPassword([]byte(finalPassword), bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("bcrypt.GenerateFromPassword: %v\n", err)
+			os.Exit(1)
+		}
+
+		if err := storage.ConfigSetPassword(string(hash)); err != nil {
 			log.Println("Failed to set password:", err)
 			os.Exit(1)
 		}
