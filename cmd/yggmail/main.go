@@ -134,6 +134,9 @@ func main() {
 		log.Println("Password for IMAP and SMTP has been updated!")
 		os.Exit(0)
 
+	case passwordhash != nil:
+		var hash string = *passwordhash;
+		log.Printf("Using password hash: %v\n", hash);
 	case (multicast == nil || !*multicast) && len(peerAddrs) == 0:
 		log.Printf("You must specify either -peer, -multicast or both!")
 		os.Exit(0)
