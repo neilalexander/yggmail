@@ -137,9 +137,7 @@ func main() {
 		if err != nil {
 			log.Printf("bcrypt.GenerateFromPassword: %v\n", err)
 			os.Exit(1)
-		}
-
-		if err := storage.ConfigSetPassword(string(hash)); err != nil {
+		} else if err := storage.ConfigSetPassword(string(hash)); err != nil {
 			log.Println("Failed to set password:", err)
 			os.Exit(1)
 		}
