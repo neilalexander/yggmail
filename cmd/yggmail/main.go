@@ -137,6 +137,11 @@ func main() {
 	case passwordhash != nil:
 		var hash string = *passwordhash;
 		log.Printf("Using password hash: %v\n", hash);
+
+		if err := storage.ConfigSetPassword(hash); err != nil {
+			log.Println("Failed to set password: ", err);
+			os.Exit(1)
+		}
 	case (multicast == nil || !*multicast) && len(peerAddrs) == 0:
 		log.Printf("You must specify either -peer, -multicast or both!")
 		os.Exit(0)
