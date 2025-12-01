@@ -154,7 +154,10 @@ func main() {
 		
 		log.Printf("Using password hash: '%v'\n", hash);
 
-		if err := storage.ConfigSetPassword(hash); err != nil {
+		if _, err := bcrypt.Cost(([]byte)(hash)); err != nil {
+			log.Printf("The provided hash is invalid %v\n", err);
+			os.Exit(1);
+		} else if err := storage.ConfigSetPassword(hash); err != nil {
 			log.Println("Failed to set password: ", err);
 			os.Exit(1)
 		}
