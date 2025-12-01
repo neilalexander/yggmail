@@ -145,7 +145,7 @@ func main() {
 		log.Println("Password for IMAP and SMTP has been updated!")
 		os.Exit(0)
 
-	case passwordhash != nil:
+	case passwordhash != nil && *passwordhash != "":
 		var hash string = strings.TrimSpace(*passwordhash);
 		if len(hash) == 0 {
 			log.Println("Password hash cannot be blank");
