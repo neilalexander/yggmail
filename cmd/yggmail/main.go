@@ -32,6 +32,8 @@ import (
 	"github.com/neilalexander/yggmail/internal/storage/sqlite3"
 	"github.com/neilalexander/yggmail/internal/transport"
 	"github.com/neilalexander/yggmail/internal/utils"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type peerAddrList []string
@@ -57,6 +59,7 @@ func main() {
 	multicast := flag.Bool("multicast", false, "Connect to Yggdrasil peers on your LAN")
         mcastregexp := flag.String("mcastregexp", ".*", "Regexp for multicast")
 	password := flag.Bool("password", false, "Set a new IMAP/SMTP password")
+	passwordhash := flag.String("passwordhash", "", "Set a new IMAP/SMTP password (hash)")
 	flag.Var(&peerAddrs, "peer", "Connect to a specific Yggdrasil static peer (this option can be given more than once)")
 	flag.Parse()
 
@@ -125,7 +128,16 @@ func main() {
 			log.Println("The supplied passwords do not match")
 			os.Exit(1)
 		}
-		if err := storage.ConfigSetPassword(strings.TrimSpace(string(password1))); err != nil {
+		
+		// trim away whitespace of UTF-8 bytes now as string
+		finalPassword := strings.TrimSpace(string(password1))
+
+		// perform hash
+		hash, err := bcrypt.GenerateFromPassword([]byte(finalPassword), bcrypt.DefaultCost)
+		if err != nil {
+			log.Printf("bcrypt.GenerateFromPassword: %v\n", err)
+			os.Exit(1)
+		} else if err := storage.ConfigSetPassword(string(hash)); err != nil {
 			log.Println("Failed to set password:", err)
 			os.Exit(1)
 		}
@@ -133,6 +145,24 @@ func main() {
 		log.Println("Password for IMAP and SMTP has been updated!")
 		os.Exit(0)
 
+	case passwordhash != nil && *passwordhash != "":
+		var hash string = strings.TrimSpace(*passwordhash);
+		if len(hash) == 0 {
+			log.Println("Password hash cannot be blank");
+			os.Exit(1);
+		}
+		
+		log.Printf("Using password hash: '%v'\n", hash);
+
+		if _, err := bcrypt.Cost(([]byte)(hash)); err != nil {
+			log.Printf("The provided hash is invalid %v\n", err);
+			os.Exit(1);
+		} else if err := storage.ConfigSetPassword(hash); err != nil {
+			log.Println("Failed to set password: ", err);
+			os.Exit(1)
+		}
+
+		log.Println("Password for IMAP and SMTP has been updated!")
 	case (multicast == nil || !*multicast) && len(peerAddrs) == 0:
 		log.Printf("You must specify either -peer, -multicast or both!")
 		os.Exit(0)
