@@ -30,6 +30,7 @@ type TableMails struct {
 	updateMailFlags  *sql.Stmt
 	deleteMail       *sql.Stmt
 	expungeMail      *sql.Stmt
+	moveMail         *sql.Stmt
 }
 
 const mailsSchema = `
@@ -94,7 +95,7 @@ const selectIDForSeqStmt = `
 
 const selectMailNextID = `
 	SELECT IFNULL(MAX(id)+1,1) AS id FROM mails
-	WHERE mailbox = $1	
+	WHERE mailbox = $1
 `
 
 const updateMailFlagsStmt = `
@@ -107,6 +108,10 @@ const deleteMailStmt = `
 
 const expungeMailStmt = `
 	DELETE FROM mails WHERE mailbox = $1 AND deleted = 1
+`
+
+const moveMailStmt = `
+	UPDATE mails SET mailbox = $1 WHERE mailbox = $2 AND id = $3
 `
 
 func NewTableMails(db *sql.DB, writer *Writer) (*TableMails, error) {
@@ -161,6 +166,10 @@ func NewTableMails(db *sql.DB, writer *Writer) (*TableMails, error) {
 	t.countUnseenMails, err = db.Prepare(selectMailUnseenStmt)
 	if err != nil {
 		return nil, fmt.Errorf("db.Prepare(selectMailUnseenStmt): %w", err)
+	}
+	t.moveMail, err = db.Prepare(moveMailStmt)
+	if err != nil {
+		return nil, fmt.Errorf("db.Prepare(moveMailStmt): %w", err)
 	}
 	return t, nil
 }
@@ -245,4 +254,11 @@ func (t *TableMails) MailCount(mailbox string) (int, error) {
 	var count int
 	err := t.countMails.QueryRow(mailbox).Scan(&count)
 	return count, err
+}
+
+func (t *TableMails) MailMove(mailbox string, id int, destination string) error {
+	return t.writer.Do(t.db, nil, func(txn *sql.Tx) error {
+		_, err := t.moveMail.Exec(destination, mailbox, id)
+		return err
+	})
 }

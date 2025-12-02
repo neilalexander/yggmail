@@ -13,7 +13,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -214,7 +213,7 @@ func (mbox *Mailbox) SearchMessages(uid bool, criteria *imap.SearchCriteria) ([]
 }
 
 func (mbox *Mailbox) CreateMessage(flags []string, date time.Time, body imap.Literal) error {
-	b, err := ioutil.ReadAll(body)
+	b, err := io.ReadAll(body)
 	if err != nil {
 		return fmt.Errorf("b.ReadFrom: %w", err)
 	}
@@ -311,4 +310,22 @@ func (mbox *Mailbox) CopyMessages(uid bool, seqSet *imap.SeqSet, destName string
 
 func (mbox *Mailbox) Expunge() error {
 	return mbox.backend.Storage.MailExpunge(mbox.name)
+}
+
+func (mbox *Mailbox) MoveMessages(uid bool, seqset *imap.SeqSet, dest string) error {
+	if dest == "Outbox" {
+		return fmt.Errorf("can't copy into Outbox as it is a protected folder")
+	}
+
+	ids, err := mbox.getIDsFromSeqSet(uid, seqset)
+	if err != nil {
+		return fmt.Errorf("mbox.getIDsFromSeqSet: %w", err)
+	}
+
+	for _, id := range ids {
+		if err := mbox.backend.Storage.MailMove(mbox.name, int(id), dest); err != nil {
+			return err
+		}
+	}
+	return nil
 }
