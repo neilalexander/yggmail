@@ -67,6 +67,9 @@ func (s *SessionRemote) Data(r io.Reader) error {
 			time.Now().String(),
 		),
 	)
+	m.Header.Add(
+		"Delivery-Date", time.Now().UTC().Format(time.RFC822),
+	)
 
 	var b bytes.Buffer
 	if err := m.WriteTo(&b); err != nil {
