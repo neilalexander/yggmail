@@ -9,7 +9,9 @@
 package smtpsender
 
 import (
+	"database/sql"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"log"
 	"net/mail"
@@ -112,14 +114,16 @@ func (q *Queue) run() {
 	if err != nil {
 		q.queues.Log.Println("Error with queue:", err)
 	}
-
-	q.queues.Log.Println("There are", len(refs), "mail(s) queued for", q.destination)
 	defer q.queues.Storage.MailExpunge("Outbox") // nolint:errcheck
 
 	for _, ref := range refs {
 		_, mail, err := q.queues.Storage.MailSelect("Outbox", ref.ID)
 		if err != nil {
-			q.queues.Log.Println("Failed to get mail", ref.ID, "due to error:", err)
+			if errors.Is(err, sql.ErrNoRows) {
+				q.queues.Storage.QueueDeleteDestinationForID("Outbox", ref.ID)
+			} else {
+				q.queues.Log.Println("Failed to get mail", ref.ID, "due to error:", err)
+			}
 			continue
 		}
 

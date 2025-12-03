@@ -33,6 +33,7 @@ type Storage interface {
 	MailDelete(mailbox string, id int) error
 	MailExpunge(mailbox string) error
 	MailCount(mailbox string) (int, error)
+	MailMove(mailbox string, id int, destination string) error
 
 	QueueListDestinations() ([]string, error)
 	QueueMailIDsForDestination(destination string) ([]types.QueuedMail, error)

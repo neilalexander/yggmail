@@ -61,6 +61,11 @@ func (s *SessionLocal) Data(r io.Reader) error {
 			time.Now().String(),
 		),
 	)
+	if !m.Header.Has("Date") {
+		m.Header.Add(
+			"Date", time.Now().UTC().Format(time.RFC822),
+		)
+	}
 
 	var b bytes.Buffer
 	if err := m.WriteTo(&b); err != nil {

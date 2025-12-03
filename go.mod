@@ -5,6 +5,7 @@ go 1.24.0
 require (
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445
+	github.com/emersion/go-imap-move v0.0.0-20210907172020-fe4558f9c872
 	github.com/emersion/go-message v0.17.0
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
 	github.com/emersion/go-smtp v0.15.0

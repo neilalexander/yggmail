@@ -68,6 +68,7 @@ The following command line switches are supported by the `yggmail` binary:
 * `-smtp=listenaddr:port` — listen for SMTP on a specific address/port
 * `-imap=listenaddr:port` — listen for IMAP on a specific address/port;
 * `-password` — set your IMAP/SMTP password (doesn't matter if Yggmail is running or not, just make sure that Yggmail is pointing at the right database file or that you are in the right working directory).
+* `-passwordhash` — Like `-password` however this sets what must be directly in the database. This assumes you passed a bcrypt hash
 
 ## Notes
 
