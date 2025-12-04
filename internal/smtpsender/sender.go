@@ -180,7 +180,10 @@ func (q *Queue) run() {
 				return fmt.Errorf("q.queues.Storage.QueueSelectIsMessagePendingSend: %w", err)
 			} else if !remaining {
 				// TODO: Here move from "Outbox" to "Sent"
-				q.queues.Storage.MailboxCreate("Sent")
+				// if e := q.queues.Storage.MailboxCreate("Sent"); e != nil {
+					// fmt.Printf("There was an error moving creating the 'Sent' mailbox: %v\n", e);
+					// return e
+				// }
 				return q.queues.Storage.MailMove("Outbox", ref.ID, "Sent")
 			}
 

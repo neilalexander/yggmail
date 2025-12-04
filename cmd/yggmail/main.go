@@ -104,7 +104,7 @@ func main() {
 	pk := sk.Public().(ed25519.PublicKey)
 	log.Printf("Mail address: %s@%s\n", hex.EncodeToString(pk), utils.Domain)
 
-	for _, name := range []string{"INBOX", "Outbox"} {
+	for _, name := range []string{"INBOX", "Outbox", "Sent"} {
 		if err := storage.MailboxCreate(name); err != nil {
 			panic(err)
 		}
