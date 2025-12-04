@@ -58,6 +58,11 @@ func (qs *Queues) manager() {
 
 func (qs *Queues) QueueFor(from string, rcpts []string, content []byte) error {
 	pid, err := qs.Storage.MailCreate("Outbox", content)
+
+	fmt.Printf("pid: %v\n", pid)
+	qs.Storage.MailboxCreate(fmt.Sprintf("pidBox%d", pid))
+	
+	
 	if err != nil {
 		return fmt.Errorf("q.queues.Storage.MailCreate: %w", err)
 	}
@@ -174,7 +179,9 @@ func (q *Queue) run() {
 			if remaining, err := q.queues.Storage.QueueSelectIsMessagePendingSend("Outbox", ref.ID); err != nil {
 				return fmt.Errorf("q.queues.Storage.QueueSelectIsMessagePendingSend: %w", err)
 			} else if !remaining {
-				return q.queues.Storage.MailDelete("Outbox", ref.ID)
+				// TODO: Here move from "Outbox" to "Sent"
+				q.queues.Storage.MailboxCreate("Sent")
+				return q.queues.Storage.MailMove("Outbox", ref.ID, "Sent")
 			}
 
 			return nil
