@@ -19,7 +19,6 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
-	// "io"
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -118,12 +117,16 @@ func main() {
 	// storage.Mailbox
 	
 	// takes in addr and output writer
-	welcome.WelcomeMessageFor(mailAddr);
+	welcomeMsg , e := welcome.WelcomeMessageFor(mailAddr);
+	if e != nil {
+		log.Println("Failure to generate welcome message")
+	}
+	storage.MailCreate("INBOX", welcomeMsg)
 
 	// wtr.Close()
 	// b, err := io.ReadAll(rdr);
 	// fmt.Println(b)
-	// storage.MailCreate("INBOX", b)
+	
 
 	switch {
 	case password != nil && *password:
