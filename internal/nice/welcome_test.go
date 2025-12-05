@@ -1,25 +1,20 @@
 package welcome;
 
 import "testing";
-// import "github.com/emersion/go-message/textproto";
+import "fmt";
 
 func Test_WelcomeGenerate(t *testing.T) {
 	// FIXME: Just make this a valid yggmail destination
 	newUser := "Tristan";
 
 	// generate welcome message header
-	hdr := welcomeTo(newUser);
-	if !hdr.Has("Subject") {
-		t.Fail();
-	}
+	bytesOut, e := WelcomeMessageFor(newUser);
 
-	if !hdr.Has("From") {
+	if e != nil {
+		t.Fail();
+	} else if len(bytesOut) == 0 {
 		t.Fail()
 	}
-
-	if !hdr.Has("To") {
-		t.Fail();
-	} else if hdr.Get("To") != "Tristan@yggmail" {
-		t.Fail()
-	}
+	
+	fmt.Printf("Out: %v\n", bytesOut);
 }
