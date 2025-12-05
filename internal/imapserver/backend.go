@@ -48,6 +48,7 @@ func (b *Backend) Login(conn *imap.ConnInfo, username, password string) (backend
 		backend:  b,
 		username: username,
 		conn:     conn,
+		log:			b.Log,
 	}
 	return user, nil
 }
