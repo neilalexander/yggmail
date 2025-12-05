@@ -19,6 +19,7 @@ import (
 	"os/signal"
 	"strings"
 	"syscall"
+	// "io"
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
@@ -32,6 +33,7 @@ import (
 	"github.com/neilalexander/yggmail/internal/storage/sqlite3"
 	"github.com/neilalexander/yggmail/internal/transport"
 	"github.com/neilalexander/yggmail/internal/utils"
+	"github.com/neilalexander/yggmail/internal/nice"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -102,13 +104,26 @@ func main() {
 		copy(sk, skBytes)
 	}
 	pk := sk.Public().(ed25519.PublicKey)
-	log.Printf("Mail address: %s@%s\n", hex.EncodeToString(pk), utils.Domain)
+	mailAddr := fmt.Sprintf("%s@%s", hex.EncodeToString(pk), utils.Domain)
+	log.Printf("Mail address: %s\n", mailAddr)
 
 	for _, name := range []string{"INBOX", "Outbox", "Sent"} {
 		if err := storage.MailboxCreate(name); err != nil {
 			panic(err)
 		}
 	}
+
+	// rdr, wtr := io.Pipe()
+
+	// storage.Mailbox
+	
+	// takes in addr and output writer
+	welcome.WelcomeMessageFor(mailAddr);
+
+	// wtr.Close()
+	// b, err := io.ReadAll(rdr);
+	// fmt.Println(b)
+	// storage.MailCreate("INBOX", b)
 
 	switch {
 	case password != nil && *password:
