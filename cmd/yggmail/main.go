@@ -121,7 +121,16 @@ func main() {
 	if e != nil {
 		log.Println("Failure to generate welcome message")
 	}
-	storage.MailCreate("INBOX", welcomeMsg)
+	var welcome_id int;
+	if id, e := storage.MailCreate("INBOX", welcomeMsg); e != nil {
+		log.Printf("Failed to store welcome message: %v\n", e);
+		panic("See above");
+	} else {
+		welcome_id = id;
+	}
+
+	storage.MailUpdateFlags("INBOX", welcome_id, false, false, false, false);
+	
 
 	// wtr.Close()
 	// b, err := io.ReadAll(rdr);
