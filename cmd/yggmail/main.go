@@ -103,7 +103,8 @@ func main() {
 		copy(sk, skBytes)
 	}
 	pk := sk.Public().(ed25519.PublicKey)
-	mailAddr := fmt.Sprintf("%s@%s", hex.EncodeToString(pk), utils.Domain)
+	mailAddr_user := hex.EncodeToString(pk);
+	mailAddr := fmt.Sprintf("%s@%s", mailAddr_user, utils.Domain)
 	log.Printf("Mail address: %s\n", mailAddr)
 
 	for _, name := range []string{"INBOX", "Outbox", "Sent"} {
@@ -112,30 +113,45 @@ func main() {
 		}
 	}
 
-	// rdr, wtr := io.Pipe()
 
-	// storage.Mailbox
-	
-	// takes in addr and output writer
-	welcomeMsg , e := welcome.WelcomeMessageFor(mailAddr);
-	if e != nil {
-		log.Println("Failure to generate welcome message")
-	}
-	var welcome_id int;
-	if id, e := storage.MailCreate("INBOX", welcomeMsg); e != nil {
-		log.Printf("Failed to store welcome message: %v\n", e);
-		panic("See above");
+	g1, g2 := storage.ConfigGet("onboarding_done")
+	log.Printf("val: %v, err: %v\n", len(g1), g2);
+
+	// Fetch onboarding status
+	if f, e := storage.ConfigGet("onboarding_done"); e == nil {
+
+		// If we haven't onboarded yet
+		if len(f) == 0 {
+			// takes in addr and output writer
+			welcomeMsg , e := welcome.WelcomeMessageFor(mailAddr_user);
+			if e != nil {
+				log.Println("Failure to generate welcome message")
+			}
+			var welcome_id int;
+			if id, e := storage.MailCreate("INBOX", welcomeMsg); e != nil {
+				log.Printf("Failed to store welcome message: %v\n", e);
+				panic("See above");
+			} else {
+				welcome_id = id;
+			}
+
+			if storage.MailUpdateFlags("INBOX", welcome_id, false, false, false, false) != nil {
+				panic("Could not set flags on onboarding message");
+			}
+			
+			// set flag to never do it again
+			if storage.ConfigSet("onboarding_done", "true") != nil {
+				panic("Error storing onboarding flag");
+			}
+
+			log.Printf("Onboarding done");
+		} else {
+			log.Printf("Onboarding not required");
+		}
 	} else {
-		welcome_id = id;
+		panic("Error fetching onboarding status");
 	}
 
-	storage.MailUpdateFlags("INBOX", welcome_id, false, false, false, false);
-	
-
-	// wtr.Close()
-	// b, err := io.ReadAll(rdr);
-	// fmt.Println(b)
-	
 
 	switch {
 	case password != nil && *password:
