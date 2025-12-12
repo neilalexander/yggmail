@@ -114,6 +114,13 @@ func (mbox *Mailbox) Check() error {
 	return nil
 }
 
+// This is what we call for listing mail
+//
+// we call this so that we can intervene
+// and provide ONE bogus email on the
+// "first run" as a sort of 'Welcome to Yggmail!'
+// type message
+
 func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.FetchItem, ch chan<- *imap.Message) error {
 	defer close(ch)
 
@@ -202,6 +209,8 @@ func (mbox *Mailbox) ListMessages(uid bool, seqSet *imap.SeqSet, items []imap.Fe
 			}
 		}
 
+		// TODO: logging
+		fmt.Printf("Listing message '%v'...\n", fetched)
 		ch <- fetched
 	}
 

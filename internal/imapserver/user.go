@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/backend"
@@ -21,6 +22,7 @@ type User struct {
 	backend  *Backend
 	username string
 	conn     *imap.ConnInfo
+	log			 *log.Logger
 }
 
 func (u *User) Username() string {
@@ -64,21 +66,35 @@ func (u *User) GetMailbox(name string) (mailbox backend.Mailbox, err error) {
 }
 
 func (u *User) CreateMailbox(name string) error {
-	return u.backend.Storage.MailboxCreate(name)
+	u.log.Printf("Creating mailbox '%s'...\n", name)
+	
+	if e := u.backend.Storage.MailboxCreate(name); e != nil {
+		u.log.Printf("Error creating mailbox '%s': %w\n", e);
+		return e;
+	}
+	
+	u.log.Printf("Created mailbox '%s'\n", name);
+	return nil;
 }
 
 func (u *User) DeleteMailbox(name string) error {
 	switch name {
-	case "INBOX", "Outbox":
+	case "INBOX", "Outbox", "Sent":
 		return errors.New("Cannot delete " + name)
 	default:
-		return u.backend.Storage.MailboxDelete(name)
+		if e := u.backend.Storage.MailboxDelete(name); e != nil {
+			 u.log.Printf("Error deleting mailbox '%s': %w\n", e)	
+			 return e;
+		} else {
+			u.log.Printf("Deleted mailbox '%s'\n", name)
+			return e;
+		}
 	}
 }
 
 func (u *User) RenameMailbox(existingName, newName string) error {
 	switch existingName {
-	case "INBOX", "Outbox":
+	case "INBOX", "Outbox", "Sent":
 		return errors.New("Cannot rename " + existingName)
 	default:
 		return u.backend.Storage.MailboxRename(existingName, newName)
