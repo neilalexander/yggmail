@@ -113,45 +113,7 @@ func main() {
 		}
 	}
 
-
-	g1, g2 := storage.ConfigGet("onboarding_done")
-	log.Printf("val: %v, err: %v\n", len(g1), g2);
-
-	// Fetch onboarding status
-	if f, e := storage.ConfigGet("onboarding_done"); e == nil {
-
-		// If we haven't onboarded yet
-		if len(f) == 0 {
-			// takes in addr and output writer
-			welcomeMsg , e := welcome.WelcomeMessageFor(mailAddr_user);
-			if e != nil {
-				log.Println("Failure to generate welcome message")
-			}
-			var welcome_id int;
-			if id, e := storage.MailCreate("INBOX", welcomeMsg); e != nil {
-				log.Printf("Failed to store welcome message: %v\n", e);
-				panic("See above");
-			} else {
-				welcome_id = id;
-			}
-
-			if storage.MailUpdateFlags("INBOX", welcome_id, false, false, false, false) != nil {
-				panic("Could not set flags on onboarding message");
-			}
-			
-			// set flag to never do it again
-			if storage.ConfigSet("onboarding_done", "true") != nil {
-				panic("Error storing onboarding flag");
-			}
-
-			log.Printf("Onboarding done");
-		} else {
-			log.Printf("Onboarding not required");
-		}
-	} else {
-		panic("Error fetching onboarding status");
-	}
-
+	welcome.Onboard(mailAddr_user, storage, log)
 
 	switch {
 	case password != nil && *password:

@@ -5,6 +5,8 @@ import "fmt";
 import "github.com/emersion/go-message";
 import "io";
 import "bytes";
+import "github.com/neilalexander/yggmail/internal/storage";
+import "log";
 
 func giveReader() io.Reader {
 	var p_r, p_o = io.Pipe();
@@ -14,16 +16,47 @@ func giveReader() io.Reader {
 	return p_r;
 }
 
-// func MakeItTo(yourYggMailAddr string, to io.Writer) error {
-	// var ent, e = makeIt0(yourYggMailAddr); // TODO: do error check
-	// if e != nil {
-		// return e
-	// }
-// 
-	// return ent.WriteTo(to);
-// }
+func Onboard(user string, storage storage.Storage, log *log.Logger) {
+	// Fetch onboarding status
+	if f, e := storage.ConfigGet("onboarding_done"); e == nil {
 
-func WelcomeMessageFor(yourYggMailAddr string) ([]byte, error) {
+		// If we haven't onboarded yet
+		if len(f) == 0 {
+			log.Printf("Performing onboarding...\n");
+		
+			// takes in addr and output writer
+			welcomeMsg , e := welcomeMessageFor(user);
+			if e != nil {
+				log.Println("Failure to generate welcome message")
+			}
+			var welcome_id int;
+			if id, e := storage.MailCreate("INBOX", welcomeMsg); e != nil {
+				log.Printf("Failed to store welcome message: %v\n", e);
+				panic("See above");
+			} else {
+				welcome_id = id;
+			}
+
+			if storage.MailUpdateFlags("INBOX", welcome_id, false, false, false, false) != nil {
+				panic("Could not set flags on onboarding message");
+			}
+			
+			// set flag to never do it again
+			if storage.ConfigSet("onboarding_done", "true") != nil {
+				panic("Error storing onboarding flag");
+			}
+
+			log.Printf("Onboarding done\n");
+		} else {
+			log.Printf("Onboarding not required\n");
+		}
+	} else {
+		panic("Error fetching onboarding status");
+	}
+
+}
+
+func welcomeMessageFor(yourYggMailAddr string) ([]byte, error) {
 	var hdr message.Header = welcomeTo(yourYggMailAddr);
 
 	var buff *bytes.Buffer = bytes.NewBuffer([]byte{})
