@@ -59,10 +59,6 @@ func (qs *Queues) manager() {
 func (qs *Queues) QueueFor(from string, rcpts []string, content []byte) error {
 	pid, err := qs.Storage.MailCreate("Outbox", content)
 
-	fmt.Printf("pid: %v\n", pid)
-	qs.Storage.MailboxCreate(fmt.Sprintf("pidBox%d", pid))
-	
-	
 	if err != nil {
 		return fmt.Errorf("q.queues.Storage.MailCreate: %w", err)
 	}
