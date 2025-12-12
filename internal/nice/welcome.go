@@ -8,6 +8,12 @@ import "bytes";
 import "github.com/neilalexander/yggmail/internal/storage";
 import "log";
 
+
+const (
+	WEBSITE_URL = "https://github.com/neilalexander/yggmail"
+	CODE_URL = "https://github.com/neilalexander/yggmail"
+);
+
 func giveReader() io.Reader {
 	var p_r, p_o = io.Pipe();
 
@@ -70,7 +76,9 @@ func welcomeMessageFor(yourYggMailAddr string) ([]byte, error) {
 		return nil, e
 	}
 
-	if _, e := msg_wrt.Write([]byte(welcome_body)); e != nil {
+	var formatted_body string = fmt.Sprintf(welcome_body, yourYggMailAddr, WEBSITE_URL, CODE_URL);
+
+	if _, e := msg_wrt.Write([]byte(formatted_body)); e != nil {
 		return nil, e
 	}
 	// var ent, e = message.New(hdr, body_rdr)
@@ -78,10 +86,11 @@ func welcomeMessageFor(yourYggMailAddr string) ([]byte, error) {
 	return buff.Bytes(), nil
 }
 
-
 var welcome_subject string = "Welcome to YggMail!";
 var welcome_body string =
 `
+Hey <b>%s</b>!
+
 We'd like to welcome you to YggMail!
 
 You're about to embark in both a revolution and an
@@ -89,6 +98,11 @@ evolution as you know it. The revolution is that this
 mailing system uses the new and experimental Yggdrasil
 internet routing system, the evolution is that it's
 good old email as you know it.
+
+Want to learn more? See the <a href="%s">website</a>
+
+Thinking of contributing; we'd be more than happy
+to work together. Our project is hosted on <a href="%s">GitHub</a>.
 `;
 
 var fakeMail_id = 69_420;
