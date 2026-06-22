@@ -74,6 +74,25 @@ func (qs *Queues) QueueFor(from string, rcpts []string, content []byte) error {
 		}
 		host := hex.EncodeToString(pk)
 		if host == hex.EncodeToString(qs.Config.PublicKey) {
+			qs.Log.Printf("Mail recipient is self '%s', quick path activating...\n", host);
+
+			// Were we the only person? Then move from Outbox -> Sent
+			if len(rcpts) == 1 {
+				qs.Log.Printf("We, '%s', were the only recipient, moving from Outbox to Sent...\n", host)
+				if e := qs.Storage.MailMove("Outbox", pid, "Sent"); e == nil {
+					qs.Log.Printf("Placed copy of mail solely addressed to self '%v' in Sent\n", pid)
+				} else {
+					qs.Log.Printf("Error moving mail destined solely to self from Outbox to Sent: %v\n", e)
+				}
+			}
+
+			// Copy the mail to your INBOX
+			if p, e := qs.Storage.MailCreate("INBOX", content); e == nil {
+				qs.Log.Printf("Placed mail to self '%v' in INBOX\n", p)
+			} else {
+				qs.Log.Printf("Error placing mail to self in INBOX: %v\n", e)
+			}	
+		
 			continue
 		}
 
