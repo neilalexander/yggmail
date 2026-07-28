@@ -102,7 +102,7 @@ func welcomeTo(yourYggMailAddr string) message.Header {
 	welcomeHdr.Add("From", "Yggmail Team")
 	welcomeHdr.Add("To", yourYggMailAddr+"@yggmail")
 	welcomeHdr.Add("Subject", welcomeSubject)
-	// FIXME: Add content-type entry here
+	welcomeHdr.Add("Content-Type", "text/html")
 
 	fmt.Printf("Generated welcome mesg '%v'\n", welcomeHdr)
 	return welcomeHdr
