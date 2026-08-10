@@ -11,6 +11,31 @@ import (
 const (
 	WEBSITE_URL = "https://github.com/neilalexander/yggmail"
 	CODE_URL    = "https://github.com/neilalexander/yggmail"
+	WELCOME_SUBJECT = "Welcome to Yggmail!"
+	WELCOME_BODY = `
+	<html>
+	<body>
+	<h1>Welcome to <i>YggMail!</i></h1>
+	<br>
+	
+	<p>Hey <b>%s</b>!</p>
+	
+	<p>We'd like to welcome you to Yggmail!</p>
+	
+	<p>You're about to embark in both a revolution and an
+	evolution as you know it. The revolution is that this
+	mailing system uses the new and experimental Yggdrasil
+	internet routing system, the evolution is that it's
+	good old email as you know it.</p>
+	
+	<br>
+	<p>Want to learn more? See the <a href="%s">website</a></p>
+	
+	<p>Thinking of contributing; we'd be more than happy
+	to work together. Our project is hosted on <a href="%s">GitHub</a>.</p>
+	</body>
+	</html>
+	`
 )
 
 func Onboard(user string, storage storage.Storage, log *log.Logger) {
@@ -22,7 +47,7 @@ func Onboard(user string, storage storage.Storage, log *log.Logger) {
 			log.Printf("Performing onboarding...\n")
 
 			// takes in addr and output writer
-			welcomeMsg, e := welcomeMessageFor(user)
+			welcomeMsg, e := welcomeMessageFor(user, log)
 			if e != nil {
 				log.Println("Failure to generate welcome message")
 			}
@@ -53,8 +78,8 @@ func Onboard(user string, storage storage.Storage, log *log.Logger) {
 
 }
 
-func welcomeMessageFor(yourYggMailAddr string) ([]byte, error) {
-	var hdr = welcomeTo(yourYggMailAddr)
+func welcomeMessageFor(yourYggMailAddr string, log *log.Logger) ([]byte, error) {
+	var hdr = welcomeTo(yourYggMailAddr, log)
 
 	var buff = bytes.NewBuffer([]byte{})
 
@@ -67,43 +92,24 @@ func welcomeMessageFor(yourYggMailAddr string) ([]byte, error) {
 		return nil, e
 	}
 
-	var formattedBody = fmt.Sprintf(welcomeBody, yourYggMailAddr, WEBSITE_URL, CODE_URL)
+	var formattedBody = fmt.Sprintf(WELCOME_BODY, yourYggMailAddr, WEBSITE_URL, CODE_URL)
 
 	if _, e := msgWrt.Write([]byte(formattedBody)); e != nil {
 		return nil, e
 	}
-	// var ent, e = message.New(hdr, body_rdr)
 
 	return buff.Bytes(), nil
 }
 
-var welcomeSubject = "Welcome to Yggmail!"
-var welcomeBody = `
-Hey <b>%s</b>!
-
-We'd like to welcome you to Yggmail!
-
-You're about to embark in both a revolution and an
-evolution as you know it. The revolution is that this
-mailing system uses the new and experimental Yggdrasil
-internet routing system, the evolution is that it's
-good old email as you know it.
-
-Want to learn more? See the <a href="%s">website</a>
-
-Thinking of contributing; we'd be more than happy
-to work together. Our project is hosted on <a href="%s">GitHub</a>.
-`
-
-func welcomeTo(yourYggMailAddr string) message.Header {
+func welcomeTo(yourYggMailAddr string, log *log.Logger) message.Header {
 	// header would be a nice preview of what to expect
 	// of the message
 	var welcomeHdr = message.Header{}
 	welcomeHdr.Add("From", "Yggmail Team")
 	welcomeHdr.Add("To", yourYggMailAddr+"@yggmail")
-	welcomeHdr.Add("Subject", welcomeSubject)
-	// FIXME: Add content-type entry here
+	welcomeHdr.Add("Subject", WELCOME_SUBJECT)
+	welcomeHdr.Add("Content-Type", "text/html")
 
-	fmt.Printf("Generated welcome mesg '%v'\n", welcomeHdr)
+	log.Printf("Generated welcome mesg '%v'\n", welcomeHdr)
 	return welcomeHdr
 }

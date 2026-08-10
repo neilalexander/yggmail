@@ -17,6 +17,7 @@ import (
 	"net/mail"
 	"sync"
 	"time"
+	"strings"
 
 	"github.com/emersion/go-smtp"
 	"github.com/neilalexander/yggmail/internal/config"
@@ -57,12 +58,45 @@ func (qs *Queues) manager() {
 	time.AfterFunc(time.Minute, qs.manager)
 }
 
+// TODO: Make this configurable, idk
+const EXPECTED_DOMAIN = "yggmail.com"
+
+func (qs *Queues) fixUp(incoming string) (string, error) {
+	qs.Log.Printf("incoming: %s", incoming)
+
+	var newAddr = ""
+	var els = strings.Split(newAddr, "@")
+	if len(els) != 2 {
+		return "", fmt.Errorf("email address '%s' is invalid as it has too many @ symbols", incoming)
+	}
+
+	var id = els[0]
+	var domain = els[1]
+
+	if(domain != EXPECTED_DOMAIN) {
+		var newDomain = EXPECTED_DOMAIN
+		qs.Log.Printf("Had to apply fixup to domain: %s -> %s", domain, newDomain)
+		domain = newDomain
+	}
+
+	newAddr = fmt.Sprintf("%s@%s", id, domain)
+	qs.Log.Printf("Final calculated address: '%s'", newAddr)
+	return newAddr, nil
+}
+
 func (qs *Queues) QueueFor(from string, rcpts []string, content []byte) error {
 	var (
 		localRecipients  int
 		remoteRecipients []types.QueueRecipient
 	)
 	for _, rcpt := range rcpts {
+		// Check if `rcpt` needs any fix up
+		// and then apply them. <id>@yggmail* -> <id>@yggmail.com
+		if rcpt, e := qs.fixUp(rcpt); e != nil {
+			qs.Log.Printf("error shimming '%s': %s", rcpt, e)
+			return e
+		}
+	
 		addr, err := mail.ParseAddress(rcpt)
 		if err != nil {
 			return fmt.Errorf("mail.ParseAddress: %w", err)
